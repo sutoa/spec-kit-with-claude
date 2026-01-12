@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manage Financial Institutions</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#137fec",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101922",
+          },
+          fontFamily: {
+            "display": ["Inter", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24
+    }
+  </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col">
+<div class="flex h-full flex-1">
+<aside class="relative flex w-64 flex-col justify-between border-r border-slate-200/10 bg-white p-4 dark:bg-background-dark/50">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3 p-2">
+<div class="text-primary">
+<svg class="size-6" fill="currentColor" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold tracking-[-0.015em] text-slate-800 dark:text-white">FinDash</h2>
+</div>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<p class="text-sm font-medium">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2 text-primary dark:bg-primary/20" href="#">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">link</span>
+<p class="text-sm font-medium">Connection</p>
+</a>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<p class="text-sm font-medium">Settings</p>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined text-xl">logout</span>
+<p class="text-sm font-medium">Logout</p>
+</a>
+</div>
+<button class="absolute -right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all hover:scale-110">
+<span class="material-symbols-outlined text-xl">chevron_left</span>
+</button>
+</aside>
+<main class="flex-1 overflow-auto">
+<header class="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200/10 bg-background-light/80 px-8 backdrop-blur-sm dark:bg-background-dark/80">
+<h1 class="text-lg font-semibold text-slate-900 dark:text-white">Connection</h1>
+<div class="flex items-center gap-4">
+<button class="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<button class="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-xl">help</span>
+</button>
+<div class="aspect-square size-10 rounded-full bg-cover bg-center bg-no-repeat" data-alt="User avatar image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCdDfDWum4h4VQ_-Iq7pnnhIgODKjzchrgLKPokDc0bRqSH8ahnICKvQ53dvlxDGz20EejLiPPjpfuTU4ZBCsPUo-2KfZIpvTH_TI7Av05KYIWpvJbZWk-Wfc2wt7t8DFCG8i3pvKTY2VnbA7MJMywPeM8e0CJWhyqtysdwhuTCqlbu8AUuJqmfkLZxZ5aZ_GN9i38xKqw8dROlyB62LdwuPswB9akiMABYBNvOkvvQo4ebjBH5wowv7-siLUeoyJA2zFlBDEdhoNhJ");'></div>
+</div>
+</header>
+<div class="p-8">
+<div class="mx-auto max-w-5xl">
+<div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-col gap-2">
+<p class="text-4xl font-black leading-tight tracking-[-0.033em] text-slate-900 dark:text-white">Manage Financial Institutions</p>
+<p class="text-base font-normal text-slate-500 dark:text-slate-400">Connect your accounts to consolidate all your financial data in one place.</p>
+</div>
+<button class="flex h-10 min-w-[84px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90">
+<span class="material-symbols-outlined text-lg">add</span>
+<span class="truncate">Add New Connection</span>
+</button>
+</div>
+<div class="mb-6">
+<div class="relative">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="block w-full rounded-lg border-slate-300 bg-white p-3 pl-12 text-sm text-slate-900 placeholder-slate-400 focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500 dark:focus:border-primary" placeholder="Search for an institution..." type="search"/>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 @lg:grid-cols-2 @4xl:grid-cols-3">
+<div class="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+<div class="mb-4 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<img class="size-10 rounded-full" data-alt="Alpaca logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHvR_5CJ7bIDbaFBwIltiPtoCYEq0-FvGvqHlKtR3JiYfd43iuOAzi5cS-yDuIqr4BAfc-r_j-VucUSYDay7GiKR3nhJwgxhot_KdNTkMV6JmSDP1TxI04banUaNrvq_erKQxe_5IFDY3bbiwIMLzN-1Ez_X4Neaz7BMOdfhSAoIkUmDtzT1t6DbZx2iBUv9Qms5uTtaiJuTqXFLOkT0TGM_BDUUs7C-mwqor8wu_WqF6Sa-SMkEB3MziLNcBP2yCffO5ZD39OSCst"/>
+<span class="font-semibold text-slate-800 dark:text-white">Alpaca</span>
+</div>
+<button class="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</div>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-green-500"></div>
+<span class="text-sm text-green-600 dark:text-green-400">Connected</span>
+</div>
+<span class="text-sm text-slate-400 dark:text-slate-500">Updated 2m ago</span>
+</div>
+</div>
+<div class="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+<div class="mb-4 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<img class="size-10 rounded-full" data-alt="Vanguard logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD2E_xTRSdzYtZPEpVuSnJoeORK_wFVQs1pPE64RcaXmElupmXzyDRwsPUCK4trdRVwmclz63LTyxh412L859DusNKpp--5rsoG_7Fu8mERiYxGgA_qvNZ916Ft62P89HtcUgB1zSSjVMdcgFSke0rhIkjSfyiWfPXuUB_t3t771JAQ6XT74gsCnvdfTzk2HmQVhK2e9Ji9fUls6TQHTsNW1GqkUXIXlVLwmXn-TCwloqBYC6SpVbEF9CESu5jhOuBX34HKaWdWF-H"/>
+<span class="font-semibold text-slate-800 dark:text-white">Vanguard</span>
+</div>
+<button class="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</div>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-green-500"></div>
+<span class="text-sm text-green-600 dark:text-green-400">Connected</span>
+</div>
+<span class="text-sm text-slate-400 dark:text-slate-500">Updated 15m ago</span>
+</div>
+</div>
+<div class="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+<div class="mb-4 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<img class="size-10 rounded-full" data-alt="TD Trade logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX0FyO5_LUqryWrxqpGi-c7Ss-TO9qmqARAj61QItzl4xVEcAog_stw38FF9UuTUa8D5JuTQ6oA1FzVmKeQZ1ZJcMI3YJZZcS4ji58G4w0XMv-8MQcPYcpMxnzoXGukyBM9uI5i68iwMPea7_-1ILFPG2zDFtNO0c0GvYjuay9BrucA1IIHxkIyIQiX0yIa0sJLhcS7HVI7v7B4T6BHGz_qNIXPqMwWjd9xSlz0c21Uiu1rc7eEls4Ptv7xST7VI8Qn70W7CdlA658"/>
+<span class="font-semibold text-slate-800 dark:text-white">TD Trade</span>
+</div>
+<button class="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</div>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-green-500"></div>
+<span class="text-sm text-green-600 dark:text-green-400">Connected</span>
+</div>
+<span class="text-sm text-slate-400 dark:text-slate-500">Updated 1h ago</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

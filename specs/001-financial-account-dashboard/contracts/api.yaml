@@ -1,0 +1,705 @@
+openapi: 3.0.3
+info:
+  title: Financial Account Dashboard API
+  description: REST API for managing financial institution connections and viewing consolidated account data.
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:3001/api
+    description: Local development server
+
+tags:
+  - name: Institutions
+    description: Financial institution reference data and connections
+  - name: Accounts
+    description: Account management
+  - name: Dashboard
+    description: Consolidated reporting
+  - name: Health
+    description: Service health checks
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /institutions:
+    get:
+      tags: [Institutions]
+      summary: List all supported institutions with connection status
+      operationId: listInstitutions
+      description: Returns all supported institutions along with their current connection status if connected.
+      responses:
+        '200':
+          description: List of institutions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InstitutionWithConnection'
+
+  /institutions/{institutionId}:
+    get:
+      tags: [Institutions]
+      summary: Get institution details
+      operationId: getInstitution
+      parameters:
+        - name: institutionId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: alpaca
+      responses:
+        '200':
+          description: Institution details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstitutionWithConnection'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /connections:
+    get:
+      tags: [Institutions]
+      summary: List all active connections
+      operationId: listConnections
+      responses:
+        '200':
+          description: List of connections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Connection'
+
+    post:
+      tags: [Institutions]
+      summary: Create a new institution connection
+      operationId: createConnection
+      description: |
+        Connects to a financial institution using provided credentials.
+        For API-based institutions (e.g., Alpaca), validates credentials before saving.
+        For manual institutions, stores credentials for future use.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConnectionRequest'
+      responses:
+        '201':
+          description: Connection created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: INVALID_CREDENTIALS
+                message: The provided credentials could not be verified with Alpaca.
+        '409':
+          description: Connection already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: CONNECTION_EXISTS
+                message: A connection to this institution already exists.
+
+  /connections/{connectionId}:
+    get:
+      tags: [Institutions]
+      summary: Get connection details
+      operationId: getConnection
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Connection details with accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionWithAccounts'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Institutions]
+      summary: Disconnect an institution
+      operationId: deleteConnection
+      description: Removes the connection, deletes stored credentials, and removes associated accounts.
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Connection deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /connections/{connectionId}/sync:
+    post:
+      tags: [Institutions]
+      summary: Sync account data from institution
+      operationId: syncConnection
+      description: |
+        Fetches latest account and balance data from the institution.
+        For API-based institutions, calls the institution's API.
+        For manual institutions, this endpoint is not applicable (use manual balance entry).
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sync completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connection:
+                    $ref: '#/components/schemas/Connection'
+                  accountsUpdated:
+                    type: integer
+                    description: Number of accounts updated
+                  balancesUpdated:
+                    type: integer
+                    description: Number of balance records created/updated
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Sync not supported for manual institutions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Institution API error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accounts:
+    get:
+      tags: [Accounts]
+      summary: List all accounts
+      operationId: listAccounts
+      parameters:
+        - name: connectionId
+          in: query
+          schema:
+            type: integer
+          description: Filter by connection ID
+        - name: institutionId
+          in: query
+          schema:
+            type: string
+          description: Filter by institution ID
+      responses:
+        '200':
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AccountWithBalance'
+
+  /accounts/{accountId}:
+    get:
+      tags: [Accounts]
+      summary: Get account details with balance history
+      operationId: getAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountWithBalanceHistory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /accounts/{accountId}/balances:
+    post:
+      tags: [Accounts]
+      summary: Add or update balance record (manual entry)
+      operationId: createBalance
+      description: Manually enter a balance record for an account. Used for institutions without API access.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBalanceRequest'
+      responses:
+        '201':
+          description: Balance record created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceRecord'
+        '200':
+          description: Balance record updated (same as_of_date existed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get consolidated dashboard report
+      operationId: getDashboard
+      description: |
+        Returns aggregated account data grouped by institution with subtotals and grand total.
+        Optionally filtered by as-of date and/or institution.
+      parameters:
+        - name: asOfDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Return balances as of this date (defaults to latest available)
+          example: "2023-12-12"
+        - name: institutionIds
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          description: Filter to specific institutions (comma-separated)
+          example: alpaca,vanguard
+      responses:
+        '200':
+          description: Dashboard report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardReport'
+
+  /dashboard/refresh:
+    post:
+      tags: [Dashboard]
+      summary: Refresh all connected institution data
+      operationId: refreshDashboard
+      description: Triggers sync for all API-connected institutions and returns updated dashboard.
+      responses:
+        '200':
+          description: Refresh completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dashboard:
+                    $ref: '#/components/schemas/DashboardReport'
+                  syncResults:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        institutionId:
+                          type: string
+                        success:
+                          type: boolean
+                        error:
+                          type: string
+                          nullable: true
+
+  /dashboard/export:
+    get:
+      tags: [Dashboard]
+      summary: Export dashboard as CSV
+      operationId: exportDashboard
+      parameters:
+        - name: asOfDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              example: attachment; filename="account-report-2023-12-12.csv"
+
+components:
+  schemas:
+    Institution:
+      type: object
+      required: [id, name, apiType, authType]
+      properties:
+        id:
+          type: string
+          example: alpaca
+        name:
+          type: string
+          example: Alpaca
+        logoUrl:
+          type: string
+          nullable: true
+        apiType:
+          type: string
+          enum: [api, manual]
+        authType:
+          type: string
+          enum: [api_key, oauth, credentials, none]
+
+    InstitutionWithConnection:
+      allOf:
+        - $ref: '#/components/schemas/Institution'
+        - type: object
+          properties:
+            connection:
+              $ref: '#/components/schemas/Connection'
+              nullable: true
+            lastUpdatedRelative:
+              type: string
+              nullable: true
+              example: "2m ago"
+
+    Connection:
+      type: object
+      required: [id, institutionId, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        institutionId:
+          type: string
+        status:
+          type: string
+          enum: [connected, disconnected, error]
+        lastSyncAt:
+          type: string
+          format: date-time
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ConnectionWithAccounts:
+      allOf:
+        - $ref: '#/components/schemas/Connection'
+        - type: object
+          properties:
+            institution:
+              $ref: '#/components/schemas/Institution'
+            accounts:
+              type: array
+              items:
+                $ref: '#/components/schemas/AccountWithBalance'
+
+    CreateConnectionRequest:
+      type: object
+      required: [institutionId, credentials]
+      properties:
+        institutionId:
+          type: string
+          example: alpaca
+        credentials:
+          oneOf:
+            - $ref: '#/components/schemas/ApiKeyCredentials'
+            - $ref: '#/components/schemas/UsernamePasswordCredentials'
+
+    ApiKeyCredentials:
+      type: object
+      required: [type, apiKey, apiSecret]
+      properties:
+        type:
+          type: string
+          enum: [api_key]
+        apiKey:
+          type: string
+        apiSecret:
+          type: string
+
+    UsernamePasswordCredentials:
+      type: object
+      required: [type, username, password]
+      properties:
+        type:
+          type: string
+          enum: [credentials]
+        username:
+          type: string
+        password:
+          type: string
+
+    Account:
+      type: object
+      required: [id, connectionId, externalId, accountNumberMasked, accountName, isActive]
+      properties:
+        id:
+          type: integer
+        connectionId:
+          type: integer
+        externalId:
+          type: string
+        accountNumberMasked:
+          type: string
+          example: "•••• 5678"
+        accountName:
+          type: string
+          example: Brokerage Account
+        accountType:
+          type: string
+          nullable: true
+          example: brokerage
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AccountWithBalance:
+      allOf:
+        - $ref: '#/components/schemas/Account'
+        - type: object
+          properties:
+            latestBalance:
+              $ref: '#/components/schemas/BalanceRecord'
+              nullable: true
+            institution:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+
+    AccountWithBalanceHistory:
+      allOf:
+        - $ref: '#/components/schemas/AccountWithBalance'
+        - type: object
+          properties:
+            balanceHistory:
+              type: array
+              items:
+                $ref: '#/components/schemas/BalanceRecord'
+
+    BalanceRecord:
+      type: object
+      required: [id, accountId, totalValue, asOfDate, fetchedAt]
+      properties:
+        id:
+          type: integer
+        accountId:
+          type: integer
+        totalValue:
+          type: number
+          format: double
+          example: 730123.45
+        cashBalance:
+          type: number
+          format: double
+          nullable: true
+        portfolioValue:
+          type: number
+          format: double
+          nullable: true
+        asOfDate:
+          type: string
+          format: date
+          example: "2023-12-12"
+        fetchedAt:
+          type: string
+          format: date-time
+
+    CreateBalanceRequest:
+      type: object
+      required: [totalValue, asOfDate]
+      properties:
+        totalValue:
+          type: number
+          format: double
+          minimum: 0
+        cashBalance:
+          type: number
+          format: double
+          nullable: true
+        portfolioValue:
+          type: number
+          format: double
+          nullable: true
+        asOfDate:
+          type: string
+          format: date
+
+    DashboardReport:
+      type: object
+      required: [grandTotal, totalInstitutions, institutions]
+      properties:
+        asOfDate:
+          type: string
+          format: date
+          nullable: true
+          description: The requested as-of date filter, or null if using latest
+        grandTotal:
+          type: number
+          format: double
+          example: 1634750.76
+        totalInstitutions:
+          type: integer
+          example: 3
+        institutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstitutionSummary'
+
+    InstitutionSummary:
+      type: object
+      required: [institutionId, institutionName, subTotal, accounts]
+      properties:
+        institutionId:
+          type: string
+        institutionName:
+          type: string
+        subTotal:
+          type: number
+          format: double
+          example: 850234.11
+        accounts:
+          type: array
+          items:
+            type: object
+            required: [accountId, accountName, accountNumberMasked, totalValue, asOfDate]
+            properties:
+              accountId:
+                type: integer
+              accountName:
+                type: string
+                example: Brokerage Account
+              accountNumberMasked:
+                type: string
+                example: "•••• 5678"
+              totalValue:
+                type: number
+                format: double
+                example: 730123.45
+              asOfDate:
+                type: string
+                format: date
+
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error context
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: NOT_FOUND
+            message: The requested resource was not found.
+
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: VALIDATION_ERROR
+            message: Invalid request parameters.
+            details:
+              field: totalValue
+              issue: must be a positive number
