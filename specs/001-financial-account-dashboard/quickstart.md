@@ -5,6 +5,7 @@
 - **Node.js**: 20.x LTS or higher
 - **pnpm**: 8.x or higher (`npm install -g pnpm`)
 - **Git**: For version control
+- **SnapTrade Account**: Developer account for brokerage API access (see SnapTrade Setup section)
 
 ## Project Setup
 
@@ -13,7 +14,7 @@
 ```bash
 # Create root directories
 mkdir -p backend/src/{models,services,api,db}
-mkdir -p backend/src/services/connectors
+mkdir -p backend/src/services/snaptrade
 mkdir -p backend/tests/{unit,integration}
 mkdir -p frontend/src/{components,pages,services,hooks,types,styles}
 mkdir -p frontend/src/components/{layout,dashboard,connections}
@@ -67,7 +68,9 @@ cat > package.json << 'EOF'
     "better-sqlite3": "^9.2.2",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "snaptrade-typescript-sdk": "^11.0.0",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.8",
@@ -115,7 +118,7 @@ pnpm create vite . --template react-ts
 pnpm add react-router-dom @tanstack/react-query
 
 # Install Tailwind CSS
-pnpm add -D tailwindcss postcss autoprefixer
+pnpm add -D tailwindcss postcss autoprefixer @tailwindcss/forms
 npx tailwindcss init -p
 
 cd ..
@@ -223,9 +226,19 @@ pnpm build
 Create `backend/.env`:
 
 ```env
+# Server
 PORT=3001
+
+# Database
 DATABASE_PATH=./data/financial-hub.db
-ENCRYPTION_SECRET=change-this-to-random-string
+
+# Encryption (generate a random 32-character string)
+ENCRYPTION_SECRET=change-this-to-random-32-char-string
+
+# SnapTrade API Credentials
+# Get these from https://dashboard.snaptrade.com
+SNAPTRADE_CLIENT_ID=your-client-id
+SNAPTRADE_CONSUMER_KEY=your-consumer-key
 ```
 
 Create `frontend/.env`:
@@ -242,11 +255,56 @@ The SQLite database is created automatically on first run. To reset:
 rm backend/data/financial-hub.db
 ```
 
-## Alpaca API Setup (for live data)
+## SnapTrade Setup
 
-1. Create an account at https://alpaca.markets/
-2. Generate API keys from the dashboard
-3. Use the keys when connecting Alpaca in the app
+SnapTrade provides unified API access to multiple brokerages (Alpaca, Vanguard, Schwab) through a single integration.
+
+### 1. Create a SnapTrade Developer Account
+
+1. Visit https://snaptrade.com/ and sign up for a developer account
+2. Navigate to the dashboard at https://dashboard.snaptrade.com
+3. Generate your API credentials (Client ID and Consumer Key)
+4. Add the credentials to your `backend/.env` file
+
+### 2. Supported Brokerages
+
+SnapTrade supports the following institutions for this application:
+
+| Institution | Capabilities | Auth Method |
+|-------------|--------------|-------------|
+| Alpaca | Full data + trading | OAuth |
+| Vanguard | Read-only (balances, positions) | OAuth |
+| Schwab (TD Trade) | Full data + trading | OAuth |
+
+### 3. Testing with Paper Trading
+
+For development, you can use Alpaca's paper trading:
+
+1. Create an Alpaca account at https://alpaca.markets/
+2. In SnapTrade connection flow, select "Alpaca Paper" for testing
+3. This allows full integration testing without real money
+
+### 4. SnapTrade SDK Usage
+
+```typescript
+import { Snaptrade } from 'snaptrade-typescript-sdk';
+
+const snaptrade = new Snaptrade({
+  clientId: process.env.SNAPTRADE_CLIENT_ID,
+  consumerKey: process.env.SNAPTRADE_CONSUMER_KEY,
+});
+
+// Register a user
+const { userId, userSecret } = await snaptrade.authentication.registerSnapTradeUser({
+  userId: 'unique-user-id',
+});
+
+// Get connection portal URL
+const redirectUri = await snaptrade.authentication.loginSnapTradeUser({
+  userId,
+  userSecret,
+});
+```
 
 ## Project Structure Reference
 
@@ -254,61 +312,88 @@ rm backend/data/financial-hub.db
 financial-account-dashboard/
 ├── package.json              # Root workspace config
 ├── pnpm-workspace.yaml       # pnpm workspace definition
+├── .gitignore                # Git ignore patterns
 ├── backend/
 │   ├── package.json
 │   ├── tsconfig.json
+│   ├── .env                  # Environment variables (not committed)
 │   ├── src/
 │   │   ├── index.ts          # Express server entry
 │   │   ├── db/
+│   │   │   ├── index.ts      # Database connection
 │   │   │   ├── schema.ts     # SQLite schema setup
 │   │   │   └── seed.ts       # Institution seed data
 │   │   ├── models/
 │   │   │   ├── institution.ts
 │   │   │   ├── connection.ts
+│   │   │   ├── credential.ts
 │   │   │   ├── account.ts
 │   │   │   └── balance.ts
 │   │   ├── services/
 │   │   │   ├── encryption.ts
 │   │   │   ├── balance.ts
-│   │   │   └── connectors/
-│   │   │       ├── index.ts
-│   │   │       ├── alpaca.ts
-│   │   │       ├── vanguard.ts
-│   │   │       └── tdtrade.ts
-│   │   └── api/
-│   │       ├── institutions.ts
-│   │       ├── accounts.ts
-│   │       └── dashboard.ts
+│   │   │   ├── connection.ts
+│   │   │   ├── dashboard.ts
+│   │   │   └── snaptrade/    # SnapTrade integration
+│   │   │       ├── client.ts
+│   │   │       ├── accounts.ts
+│   │   │       └── holdings.ts
+│   │   ├── api/
+│   │   │   ├── index.ts      # Router aggregation
+│   │   │   ├── health.ts
+│   │   │   ├── institutions.ts
+│   │   │   ├── connections.ts
+│   │   │   ├── accounts.ts
+│   │   │   └── dashboard.ts
+│   │   ├── middleware/
+│   │   │   ├── security.ts   # CORS, Helmet
+│   │   │   └── error.ts      # Error handling
+│   │   └── types/
+│   │       └── index.ts
 │   └── tests/
+│       ├── unit/
+│       └── integration/
 └── frontend/
     ├── package.json
     ├── vite.config.ts
     ├── tailwind.config.js
     ├── index.html
+    ├── .env                  # Environment variables (not committed)
     ├── src/
     │   ├── main.tsx
     │   ├── App.tsx
     │   ├── components/
     │   │   ├── layout/
     │   │   │   ├── Sidebar.tsx
-    │   │   │   └── Header.tsx
+    │   │   │   ├── Header.tsx
+    │   │   │   └── Layout.tsx
     │   │   ├── dashboard/
     │   │   │   ├── GrandTotal.tsx
+    │   │   │   ├── TotalInstitutions.tsx
     │   │   │   ├── InstitutionCard.tsx
-    │   │   │   └── FilterPanel.tsx
+    │   │   │   ├── AccountRow.tsx
+    │   │   │   ├── FilterPanel.tsx
+    │   │   │   └── InstitutionFilter.tsx
     │   │   └── connections/
     │   │       ├── InstitutionList.tsx
-    │   │       └── ConnectModal.tsx
+    │   │       ├── InstitutionCard.tsx
+    │   │       ├── ConnectModal.tsx
+    │   │       └── DisconnectConfirmModal.tsx
     │   ├── pages/
     │   │   ├── Dashboard.tsx
     │   │   └── Connections.tsx
     │   ├── services/
     │   │   └── api.ts
     │   ├── hooks/
-    │   │   └── useApi.ts
+    │   │   ├── useApi.ts
+    │   │   ├── useDashboard.ts
+    │   │   ├── useInstitutions.ts
+    │   │   └── useConnections.ts
     │   └── types/
     │       └── index.ts
     └── tests/
+        ├── unit/
+        └── e2e/
 ```
 
 ## Verification Checklist
@@ -319,3 +404,5 @@ financial-account-dashboard/
 - [ ] Backend health check at http://localhost:3001/api/health returns `{"status":"ok"}`
 - [ ] Dark theme displays correctly with mockup colors
 - [ ] Material Symbols icons render properly
+- [ ] SnapTrade credentials configured in backend/.env
+- [ ] Database file created at backend/data/financial-hub.db on first run

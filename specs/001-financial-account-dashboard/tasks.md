@@ -24,15 +24,15 @@
 
 **Purpose**: Project initialization and basic structure per quickstart.md
 
-- [ ] T001 Create root project structure with pnpm-workspace.yaml and root package.json
-- [ ] T002 [P] Initialize backend with package.json, tsconfig.json per backend/package.json
-- [ ] T003 [P] Initialize frontend with Vite React-TS template per frontend/package.json
-- [ ] T004 [P] Configure Tailwind CSS with design tokens in frontend/tailwind.config.js
-- [ ] T005 [P] Add Inter font and Material Symbols to frontend/index.html
-- [ ] T006 [P] Create backend environment config in backend/.env
-- [ ] T007 [P] Create frontend environment config in frontend/.env
-- [ ] T008 [P] Configure ESLint and Prettier in root .eslintrc.js and .prettierrc
-- [ ] T009 Install all dependencies with pnpm install
+- [X] T001 Create root project structure with pnpm-workspace.yaml and root package.json
+- [X] T002 [P] Initialize backend with package.json, tsconfig.json per backend/package.json
+- [X] T003 [P] Initialize frontend with Vite React-TS template per frontend/package.json
+- [X] T004 [P] Configure Tailwind CSS with design tokens in frontend/tailwind.config.js
+- [X] T005 [P] Add Inter font and Material Symbols to frontend/index.html
+- [X] T006 [P] Create backend environment config in backend/.env
+- [X] T007 [P] Create frontend environment config in frontend/.env
+- [X] T008 [P] Configure ESLint and Prettier in root .eslintrc.js and .prettierrc
+- [X] T009 Install all dependencies with pnpm install
 
 ---
 
@@ -44,47 +44,47 @@
 
 ### Database & Schema
 
-- [ ] T010 Create SQLite database initialization in backend/src/db/index.ts
-- [ ] T011 Implement database schema per data-model.md in backend/src/db/schema.ts
-- [ ] T012 Create institution seed data in backend/src/db/seed.ts (Alpaca, Vanguard, TD Trade)
+- [X] T010 Create SQLite database initialization in backend/src/db/index.ts
+- [X] T011 Implement database schema per data-model.md in backend/src/db/schema.ts
+- [X] T012 Create institution seed data in backend/src/db/seed.ts (Alpaca, Vanguard, TD Trade)
 
 ### Shared TypeScript Types
 
-- [ ] T013 [P] Create shared types for entities in backend/src/types/index.ts
-- [ ] T014 [P] Create frontend API types mirroring backend in frontend/src/types/index.ts
+- [X] T013 [P] Create shared types for entities in backend/src/types/index.ts
+- [X] T014 [P] Create frontend API types mirroring backend in frontend/src/types/index.ts
 
 ### Backend Core Infrastructure
 
-- [ ] T015 Create Express server entry point in backend/src/index.ts
-- [ ] T016 [P] Implement CORS and Helmet middleware in backend/src/middleware/security.ts
-- [ ] T017 [P] Implement error handling middleware in backend/src/middleware/error.ts
-- [ ] T018 [P] Create health check endpoint in backend/src/api/health.ts
-- [ ] T019 Setup API router aggregation in backend/src/api/index.ts
+- [X] T015 Create Express server entry point in backend/src/index.ts
+- [X] T016 [P] Implement CORS and Helmet middleware in backend/src/middleware/security.ts
+- [X] T017 [P] Implement error handling middleware in backend/src/middleware/error.ts
+- [X] T018 [P] Create health check endpoint in backend/src/api/health.ts
+- [X] T019 Setup API router aggregation in backend/src/api/index.ts
 
 ### Encryption Service
 
-- [ ] T020 Implement AES-256-GCM encryption service in backend/src/services/encryption.ts
+- [X] T020 Implement AES-256-GCM encryption service in backend/src/services/encryption.ts
 
 ### SnapTrade Integration
 
-- [ ] T021 Create SnapTrade client wrapper in backend/src/services/snaptrade/client.ts
-- [ ] T022 [P] Implement SnapTrade accounts service in backend/src/services/snaptrade/accounts.ts
-- [ ] T023 [P] Implement SnapTrade holdings service in backend/src/services/snaptrade/holdings.ts
+- [X] T021 Create SnapTrade client wrapper in backend/src/services/snaptrade/client.ts
+- [X] T022 [P] Implement SnapTrade accounts service in backend/src/services/snaptrade/accounts.ts
+- [X] T023 [P] Implement SnapTrade holdings service in backend/src/services/snaptrade/holdings.ts
 
 ### Frontend Core Infrastructure
 
-- [ ] T024 Create React Router setup in frontend/src/App.tsx
-- [ ] T025 [P] Create API client service in frontend/src/services/api.ts
-- [ ] T026 [P] Create React Query provider setup in frontend/src/main.tsx
-- [ ] T027 [P] Create custom useApi hook in frontend/src/hooks/useApi.ts
+- [X] T024 Create React Router setup in frontend/src/App.tsx
+- [X] T025 [P] Create API client service in frontend/src/services/api.ts
+- [X] T026 [P] Create React Query provider setup in frontend/src/main.tsx
+- [X] T027 [P] Create custom useApi hook in frontend/src/hooks/useApi.ts
 
 ### Base Models (Backend)
 
-- [ ] T028 [P] Create Institution model in backend/src/models/institution.ts
-- [ ] T029 [P] Create Connection model in backend/src/models/connection.ts
-- [ ] T030 [P] Create Credential model in backend/src/models/credential.ts
-- [ ] T031 [P] Create Account model in backend/src/models/account.ts
-- [ ] T032 [P] Create BalanceRecord model in backend/src/models/balance.ts
+- [X] T028 [P] Create Institution model in backend/src/models/institution.ts
+- [X] T029 [P] Create Connection model in backend/src/models/connection.ts
+- [X] T030 [P] Create Credential model in backend/src/models/credential.ts
+- [X] T031 [P] Create Account model in backend/src/models/account.ts
+- [X] T032 [P] Create BalanceRecord model in backend/src/models/balance.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -98,18 +98,18 @@
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Unit test for Sidebar component in frontend/tests/unit/Sidebar.test.tsx
-- [ ] T034 [P] [US3] Unit test for Header component in frontend/tests/unit/Header.test.tsx
+- [X] T033 [P] [US3] Unit test for Sidebar component in frontend/tests/unit/Sidebar.test.tsx
+- [X] T034 [P] [US3] Unit test for Header component in frontend/tests/unit/Header.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T035 [P] [US3] Create Sidebar component (collapsible, Financial Hub branding) in frontend/src/components/layout/Sidebar.tsx
-- [ ] T036 [P] [US3] Create Header component (title, icons, avatar) in frontend/src/components/layout/Header.tsx
-- [ ] T037 [US3] Create main Layout wrapper component in frontend/src/components/layout/Layout.tsx
-- [ ] T038 [US3] Create Dashboard page placeholder in frontend/src/pages/Dashboard.tsx
-- [ ] T039 [US3] Create Connections page placeholder in frontend/src/pages/Connections.tsx
-- [ ] T040 [US3] Wire up routes in frontend/src/App.tsx with Layout and pages
-- [ ] T041 [US3] Style components pixel-perfect per mockup-screens/dashboard_tab/code.html
+- [X] T035 [P] [US3] Create Sidebar component (collapsible, Financial Hub branding) in frontend/src/components/layout/Sidebar.tsx
+- [X] T036 [P] [US3] Create Header component (title, icons, avatar) in frontend/src/components/layout/Header.tsx
+- [X] T037 [US3] Create main Layout wrapper component in frontend/src/components/layout/Layout.tsx
+- [X] T038 [US3] Create Dashboard page placeholder in frontend/src/pages/Dashboard.tsx
+- [X] T039 [US3] Create Connections page placeholder in frontend/src/pages/Connections.tsx
+- [X] T040 [US3] Wire up routes in frontend/src/App.tsx with Layout and pages
+- [X] T041 [US3] Style components pixel-perfect per mockup-screens/dashboard_tab/code.html
 
 **Checkpoint**: Navigation layout complete - can switch between Dashboard and Connections views
 
@@ -123,29 +123,29 @@
 
 ### Tests for User Story 2
 
-- [ ] T042 [P] [US2] Contract test for POST /connections in backend/tests/integration/connections.test.ts
-- [ ] T043 [P] [US2] Contract test for DELETE /connections/:id in backend/tests/integration/connections.test.ts
-- [ ] T044 [P] [US2] Unit test for InstitutionList component in frontend/tests/unit/InstitutionList.test.tsx
+- [X] T042 [P] [US2] Contract test for POST /connections in backend/tests/integration/connections.test.ts
+- [X] T043 [P] [US2] Contract test for DELETE /connections/:id in backend/tests/integration/connections.test.ts
+- [X] T044 [P] [US2] Unit test for InstitutionList component in frontend/tests/unit/InstitutionList.test.tsx
 
 ### Backend Implementation for User Story 2
 
-- [ ] T045 [US2] Implement GET /institutions endpoint in backend/src/api/institutions.ts
-- [ ] T046 [US2] Implement GET /connections endpoint in backend/src/api/connections.ts
-- [ ] T047 [US2] Implement POST /connections endpoint (create connection via SnapTrade) in backend/src/api/connections.ts
-- [ ] T048 [US2] Implement DELETE /connections/:id endpoint in backend/src/api/connections.ts
-- [ ] T049 [US2] Implement POST /connections/:id/sync endpoint in backend/src/api/connections.ts
-- [ ] T050 [US2] Create ConnectionService with SnapTrade integration in backend/src/services/connection.ts
+- [X] T045 [US2] Implement GET /institutions endpoint in backend/src/api/institutions.ts
+- [X] T046 [US2] Implement GET /connections endpoint in backend/src/api/connections.ts
+- [X] T047 [US2] Implement POST /connections endpoint (create connection via SnapTrade) in backend/src/api/connections.ts
+- [X] T048 [US2] Implement DELETE /connections/:id endpoint in backend/src/api/connections.ts
+- [X] T049 [US2] Implement POST /connections/:id/sync endpoint in backend/src/api/connections.ts
+- [X] T050 [US2] Create ConnectionService with SnapTrade integration in backend/src/services/connection.ts
 
 ### Frontend Implementation for User Story 2
 
-- [ ] T051 [P] [US2] Create InstitutionCard component in frontend/src/components/connections/InstitutionCard.tsx
-- [ ] T052 [P] [US2] Create InstitutionList component in frontend/src/components/connections/InstitutionList.tsx
-- [ ] T053 [US2] Create ConnectModal component (credential input form) in frontend/src/components/connections/ConnectModal.tsx
-- [ ] T054 [US2] Create DisconnectConfirmModal component in frontend/src/components/connections/DisconnectConfirmModal.tsx
-- [ ] T055 [US2] Create useInstitutions hook in frontend/src/hooks/useInstitutions.ts
-- [ ] T056 [US2] Create useConnections hook in frontend/src/hooks/useConnections.ts
-- [ ] T057 [US2] Implement full Connections page in frontend/src/pages/Connections.tsx
-- [ ] T058 [US2] Style Connections view pixel-perfect per mockup-screens/connection_tab/code.html
+- [X] T051 [P] [US2] Create InstitutionCard component in frontend/src/components/connections/InstitutionCard.tsx
+- [X] T052 [P] [US2] Create InstitutionList component in frontend/src/components/connections/InstitutionList.tsx
+- [X] T053 [US2] Create ConnectModal component (credential input form) in frontend/src/components/connections/ConnectModal.tsx
+- [X] T054 [US2] Create DisconnectConfirmModal component in frontend/src/components/connections/DisconnectConfirmModal.tsx
+- [X] T055 [US2] Create useInstitutions hook in frontend/src/hooks/useInstitutions.ts
+- [X] T056 [US2] Create useConnections hook in frontend/src/hooks/useConnections.ts
+- [X] T057 [US2] Implement full Connections page in frontend/src/pages/Connections.tsx
+- [X] T058 [US2] Style Connections view pixel-perfect per mockup-screens/connection_tab/code.html
 
 **Checkpoint**: Connection management complete - can connect/disconnect institutions
 
