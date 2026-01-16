@@ -25,20 +25,20 @@ describe('GET /api/dashboard', () => {
 
   beforeEach(() => {
     db = getDatabase();
-    // Clear all data
+    // Clear all data in correct order (children first to avoid FK issues)
     db.prepare('DELETE FROM balance_records').run();
     db.prepare('DELETE FROM accounts').run();
-    db.prepare('DELETE FROM connections').run();
     db.prepare('DELETE FROM credentials').run();
+    db.prepare('DELETE FROM connections').run();
     resetMockSnapTrade();
   });
 
   afterEach(() => {
-    // Cleanup
+    // Cleanup (children first)
     db.prepare('DELETE FROM balance_records').run();
     db.prepare('DELETE FROM accounts').run();
-    db.prepare('DELETE FROM connections').run();
     db.prepare('DELETE FROM credentials').run();
+    db.prepare('DELETE FROM connections').run();
   });
 
   it('should return empty dashboard when no connections exist', async () => {
@@ -282,18 +282,20 @@ describe('POST /api/dashboard/refresh', () => {
 
   beforeEach(() => {
     db = getDatabase();
+    // Clear all data in correct order (children first to avoid FK issues)
     db.prepare('DELETE FROM balance_records').run();
     db.prepare('DELETE FROM accounts').run();
-    db.prepare('DELETE FROM connections').run();
     db.prepare('DELETE FROM credentials').run();
+    db.prepare('DELETE FROM connections').run();
     resetMockSnapTrade();
   });
 
   afterEach(() => {
+    // Cleanup (children first)
     db.prepare('DELETE FROM balance_records').run();
     db.prepare('DELETE FROM accounts').run();
-    db.prepare('DELETE FROM connections').run();
     db.prepare('DELETE FROM credentials').run();
+    db.prepare('DELETE FROM connections').run();
   });
 
   it('should refresh all connections and return updated dashboard', async () => {

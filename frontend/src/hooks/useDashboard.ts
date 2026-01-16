@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../services/api'
+import { getDashboard, refreshDashboard } from '../services/api'
 
 export interface DashboardReport {
   asOfDate: string | null
@@ -36,14 +36,7 @@ export function useDashboard(asOfDate?: string) {
   const query = useQuery({
     queryKey: ['dashboard', asOfDate],
     queryFn: async () => {
-      const params = new URLSearchParams()
-      if (asOfDate) {
-        params.append('asOfDate', asOfDate)
-      }
-      const response = await api.get<DashboardReport>(
-        `/dashboard${params.toString() ? `?${params.toString()}` : ''}`
-      )
-      return response.data
+      return getDashboard(asOfDate ? { asOfDate } : undefined)
     },
   })
 
@@ -55,8 +48,7 @@ export function useRefreshDashboard() {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const response = await api.post<RefreshResult>('/dashboard/refresh')
-      return response.data
+      return refreshDashboard()
     },
     onSuccess: () => {
       // Invalidate dashboard query to refetch

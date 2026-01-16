@@ -26,17 +26,21 @@ describe('POST /api/connections', () => {
 
   beforeEach(() => {
     db = getDatabase();
-    // Clear connections and credentials before each test
-    db.prepare('DELETE FROM connections').run();
+    // Clear all data in correct order (children first to avoid FK issues)
+    db.prepare('DELETE FROM balance_records').run();
+    db.prepare('DELETE FROM accounts').run();
     db.prepare('DELETE FROM credentials').run();
+    db.prepare('DELETE FROM connections').run();
     // Reset mock state
     resetMockSnapTrade();
   });
 
   afterEach(() => {
-    // Cleanup after tests
-    db.prepare('DELETE FROM connections').run();
+    // Cleanup after tests (children first)
+    db.prepare('DELETE FROM balance_records').run();
+    db.prepare('DELETE FROM accounts').run();
     db.prepare('DELETE FROM credentials').run();
+    db.prepare('DELETE FROM connections').run();
   });
 
   it('should create a new connection with valid API key credentials', async () => {
@@ -249,6 +253,11 @@ describe('DELETE /api/connections/:id', () => {
 
   beforeEach(async () => {
     db = getDatabase();
+    // Clear all data in correct order (children first to avoid FK issues)
+    db.prepare('DELETE FROM balance_records').run();
+    db.prepare('DELETE FROM accounts').run();
+    db.prepare('DELETE FROM credentials').run();
+    db.prepare('DELETE FROM connections').run();
     // Reset mock state
     resetMockSnapTrade();
 
@@ -268,9 +277,11 @@ describe('DELETE /api/connections/:id', () => {
   });
 
   afterEach(() => {
-    // Cleanup
-    db.prepare('DELETE FROM connections').run();
+    // Cleanup (children first)
+    db.prepare('DELETE FROM balance_records').run();
+    db.prepare('DELETE FROM accounts').run();
     db.prepare('DELETE FROM credentials').run();
+    db.prepare('DELETE FROM connections').run();
   });
 
   it('should delete an existing connection', async () => {

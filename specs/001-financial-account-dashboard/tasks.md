@@ -159,32 +159,32 @@
 
 ### Tests for User Story 1
 
-- [ ] T059 [P] [US1] Contract test for GET /dashboard in backend/tests/integration/dashboard.test.ts
-- [ ] T060 [P] [US1] Contract test for POST /dashboard/refresh in backend/tests/integration/dashboard.test.ts
-- [ ] T061 [P] [US1] Unit test for GrandTotal component in frontend/tests/unit/GrandTotal.test.tsx
-- [ ] T062 [P] [US1] Unit test for InstitutionCard (dashboard) in frontend/tests/unit/DashboardInstitutionCard.test.tsx
+- [X] T059 [P] [US1] Contract test for GET /dashboard in backend/tests/integration/dashboard.test.ts
+- [X] T060 [P] [US1] Contract test for POST /dashboard/refresh in backend/tests/integration/dashboard.test.ts
+- [X] T061 [P] [US1] Unit test for GrandTotal component in frontend/tests/unit/GrandTotal.test.tsx
+- [X] T062 [P] [US1] Unit test for InstitutionCard (dashboard) in frontend/tests/unit/DashboardInstitutionCard.test.tsx
 
 ### Backend Implementation for User Story 1
 
-- [ ] T063 [US1] Implement GET /dashboard endpoint in backend/src/api/dashboard.ts
-- [ ] T064 [US1] Implement POST /dashboard/refresh endpoint in backend/src/api/dashboard.ts
-- [ ] T065 [US1] Implement GET /dashboard/export (CSV) endpoint in backend/src/api/dashboard.ts
-- [ ] T066 [US1] Create DashboardService with aggregation logic in backend/src/services/dashboard.ts
-- [ ] T067 [US1] Create BalanceService for balance queries in backend/src/services/balance.ts
-- [ ] T068 [US1] Implement as-of date filtering logic in backend/src/services/dashboard.ts
+- [X] T063 [US1] Implement GET /dashboard endpoint in backend/src/api/dashboard.ts
+- [X] T064 [US1] Implement POST /dashboard/refresh endpoint in backend/src/api/dashboard.ts
+- [X] T065 [US1] Implement GET /dashboard/export (CSV) endpoint in backend/src/api/dashboard.ts
+- [X] T066 [US1] Create DashboardService with aggregation logic in backend/src/services/dashboard.ts
+- [X] T067 [US1] Create BalanceService for balance queries in backend/src/services/balance.ts
+- [X] T068 [US1] Implement as-of date filtering logic in backend/src/services/dashboard.ts
 
 ### Frontend Implementation for User Story 1
 
-- [ ] T069 [P] [US1] Create GrandTotal component in frontend/src/components/dashboard/GrandTotal.tsx
-- [ ] T070 [P] [US1] Create TotalInstitutions component in frontend/src/components/dashboard/TotalInstitutions.tsx
-- [ ] T071 [P] [US1] Create FilterPanel component (as-of date picker) in frontend/src/components/dashboard/FilterPanel.tsx
-- [ ] T072 [US1] Create DashboardInstitutionCard component in frontend/src/components/dashboard/InstitutionCard.tsx
-- [ ] T073 [US1] Create AccountRow component in frontend/src/components/dashboard/AccountRow.tsx
-- [ ] T074 [US1] Create useDashboard hook in frontend/src/hooks/useDashboard.ts
-- [ ] T075 [US1] Implement full Dashboard page in frontend/src/pages/Dashboard.tsx
-- [ ] T076 [US1] Implement refresh functionality with loading states
-- [ ] T077 [US1] Implement export report button functionality
-- [ ] T078 [US1] Style Dashboard view pixel-perfect per mockup-screens/dashboard_tab/code.html
+- [X] T069 [P] [US1] Create GrandTotal component in frontend/src/components/dashboard/GrandTotal.tsx
+- [X] T070 [P] [US1] Create TotalInstitutions component in frontend/src/components/dashboard/TotalInstitutions.tsx
+- [X] T071 [P] [US1] Create FilterPanel component (as-of date picker) in frontend/src/components/dashboard/FilterPanel.tsx
+- [X] T072 [US1] Create DashboardInstitutionCard component in frontend/src/components/dashboard/InstitutionCard.tsx
+- [X] T073 [US1] Create AccountRow component in frontend/src/components/dashboard/AccountRow.tsx
+- [X] T074 [US1] Create useDashboard hook in frontend/src/hooks/useDashboard.ts
+- [X] T075 [US1] Implement full Dashboard page in frontend/src/pages/Dashboard.tsx
+- [X] T076 [US1] Implement refresh functionality with loading states
+- [X] T077 [US1] Implement export report button functionality
+- [X] T078 [US1] Style Dashboard view pixel-perfect per mockup-screens/dashboard_tab/code.html
 
 **Checkpoint**: Dashboard complete - consolidated view with refresh, grouping, and totals
 
