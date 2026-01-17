@@ -66,7 +66,7 @@ export async function getAccountBalances(
   // Response is an array of Balance objects
   const balances = response.data || []
   let cash: number | null = null
-  let marketValue: number | null = null
+  const marketValue: number | null = null
 
   // Sum up all balances by type
   for (const balance of balances) {

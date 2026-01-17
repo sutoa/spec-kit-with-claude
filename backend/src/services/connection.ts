@@ -7,12 +7,11 @@ import * as snaptradeClient from './snaptrade/client.js'
 import * as snaptradeAccounts from './snaptrade/accounts.js'
 import * as snaptradeHoldings from './snaptrade/holdings.js'
 import type { CredentialData, Connection } from '../types/index.js'
-import type { SnaptradeUserCredentials } from './snaptrade/client.js'
-import crypto from 'crypto'
+import type { SnaptradeAccountHoldings } from './snaptrade/holdings.js'
 
 export interface CreateConnectionParams {
   institutionId: string
-  credentials: CredentialData
+  credentials?: CredentialData
 }
 
 export interface SyncResult {
@@ -22,23 +21,39 @@ export interface SyncResult {
 }
 
 /**
+ * Get fixed SnapTrade user credentials from environment variables
+ * For MVP single-user mode, all connections share the same SnapTrade user
+ */
+function getFixedSnaptradeCredentials(): { userId: string; userSecret: string } {
+  const userId = process.env.SNAPTRADE_USER_ID
+  const userSecret = process.env.SNAPTRADE_USER_SECRET
+
+  if (!userId || !userSecret || userId === 'your-user-id-here' || userSecret === 'your-user-secret-here') {
+    throw new Error(
+      'SnapTrade user credentials not configured. ' +
+      'Please set SNAPTRADE_USER_ID and SNAPTRADE_USER_SECRET in backend/.env'
+    )
+  }
+
+  return { userId, userSecret }
+}
+
+/**
  * Dependencies that can be injected for testing
  */
 export interface ConnectionServiceDeps {
-  registerSnaptradeUser?: (userId: string) => Promise<SnaptradeUserCredentials>
-  deleteSnaptradeUser?: (userId: string) => Promise<void>
   getConnectionPortalUrl?: (userId: string, userSecret: string, broker?: string) => Promise<string>
   getAccounts?: (userId: string, userSecret: string) => Promise<any[]>
-  getHoldings?: (userId: string, userSecret: string, accountId: string) => Promise<any[]>
+  getHoldings?: (userId: string, userSecret: string, accountId: string) => Promise<SnaptradeAccountHoldings>
+  getFixedCredentials?: () => { userId: string; userSecret: string }
 }
 
 // Global dependencies (can be overridden for testing)
 let deps: ConnectionServiceDeps = {
-  registerSnaptradeUser: snaptradeClient.registerSnaptradeUser,
-  deleteSnaptradeUser: snaptradeClient.deleteSnaptradeUser,
   getConnectionPortalUrl: snaptradeClient.getConnectionPortalUrl,
-  getAccounts: snaptradeAccounts.getAccounts,
-  getHoldings: snaptradeHoldings.getHoldings,
+  getAccounts: snaptradeAccounts.listUserAccounts,
+  getHoldings: snaptradeHoldings.getAccountHoldings,
+  getFixedCredentials: getFixedSnaptradeCredentials,
 }
 
 /**
@@ -53,21 +68,24 @@ export function setConnectionServiceDeps(newDeps: Partial<ConnectionServiceDeps>
  */
 export function resetConnectionServiceDeps() {
   deps = {
-    registerSnaptradeUser: snaptradeClient.registerSnaptradeUser,
-    deleteSnaptradeUser: snaptradeClient.deleteSnaptradeUser,
     getConnectionPortalUrl: snaptradeClient.getConnectionPortalUrl,
-    getAccounts: snaptradeAccounts.getAccounts,
-    getHoldings: snaptradeHoldings.getHoldings,
+    getAccounts: snaptradeAccounts.listUserAccounts,
+    getHoldings: snaptradeHoldings.getAccountHoldings,
+    getFixedCredentials: getFixedSnaptradeCredentials,
   }
 }
 
 /**
  * ConnectionService handles the creation, management, and synchronization
- * of institution connections using SnapTrade
+ * of institution connections using SnapTrade.
+ *
+ * MVP Mode: Uses a fixed SnapTrade user ID and secret from environment variables.
+ * All connections share the same SnapTrade user for simplicity.
  */
 export class ConnectionService {
   /**
-   * Create a new connection to a financial institution
+   * Create a new connection to a financial institution.
+   * Uses fixed SnapTrade user credentials from environment variables.
    */
   static async createConnection(params: CreateConnectionParams): Promise<Connection> {
     const { institutionId, credentials } = params
@@ -84,34 +102,29 @@ export class ConnectionService {
       throw new Error(`Connection to ${institution.name} already exists`)
     }
 
-    // Generate a unique user ID for SnapTrade
-    const snaptradeUserId = `user-${institutionId}-${crypto.randomUUID()}`
+    // Validate fixed SnapTrade credentials are configured
+    const fixedCreds = deps.getFixedCredentials!()
 
-    try {
-      // Register user with SnapTrade
-      const snaptradeUser = await deps.registerSnaptradeUser!(snaptradeUserId)
+    // Create connection record with 'pending' status (user hasn't completed OAuth yet)
+    // Note: We don't store SnapTrade credentials in the connection anymore
+    // since all connections use the same fixed user from environment
+    const connection = ConnectionModel.create({
+      institutionId,
+      status: 'pending',
+      // snaptradeUserId and snaptradeUserSecret are not needed - using fixed env credentials
+    })
 
-      // Create connection record
-      const connection = ConnectionModel.create({
-        institutionId,
-        status: 'connected',
-        snaptradeUserId: snaptradeUser.userId,
-        snaptradeUserSecret: snaptradeUser.userSecret,
-      })
-
-      // Store encrypted credentials
+    // Store encrypted credentials only if provided (not needed for OAuth)
+    if (credentials) {
       CredentialModel.create(connection.id, credentials)
-
-      return connection
-    } catch (error) {
-      // Clean up if SnapTrade registration fails
-      console.error('Failed to create connection:', error)
-      throw new Error('Failed to create connection with SnapTrade')
     }
+
+    return connection
   }
 
   /**
-   * Get the SnapTrade connection portal URL for a connection
+   * Get the SnapTrade connection portal URL for a connection.
+   * Uses fixed SnapTrade user credentials from environment variables.
    */
   static async getConnectionPortalUrl(connectionId: number, broker?: string): Promise<string> {
     const connection = ConnectionModel.findById(connectionId)
@@ -119,21 +132,17 @@ export class ConnectionService {
       throw new Error(`Connection ${connectionId} not found`)
     }
 
-    if (!connection.snaptradeUserId || !connection.snaptradeUserSecret) {
-      throw new Error('Connection does not have SnapTrade credentials')
-    }
+    // Use fixed credentials from environment
+    const { userId, userSecret } = deps.getFixedCredentials!()
 
-    const url = await deps.getConnectionPortalUrl!(
-      connection.snaptradeUserId,
-      connection.snaptradeUserSecret,
-      broker
-    )
+    const url = await deps.getConnectionPortalUrl!(userId, userSecret, broker)
 
     return url
   }
 
   /**
-   * Sync account data from SnapTrade for a connection
+   * Sync account data from SnapTrade for a connection.
+   * Uses fixed SnapTrade user credentials from environment variables.
    */
   static async syncConnection(connectionId: number): Promise<SyncResult> {
     const connection = ConnectionModel.findById(connectionId)
@@ -151,27 +160,23 @@ export class ConnectionService {
       throw new Error(`Sync is not supported for ${institution.name} (manual institution)`)
     }
 
-    if (!connection.snaptradeUserId || !connection.snaptradeUserSecret) {
-      throw new Error('Connection does not have SnapTrade credentials')
-    }
+    // Use fixed credentials from environment
+    const { userId, userSecret } = deps.getFixedCredentials!()
 
     try {
       // Fetch accounts from SnapTrade
-      const snaptradeAccounts = await deps.getAccounts!(
-        connection.snaptradeUserId,
-        connection.snaptradeUserSecret
-      )
+      const snaptradeAccountsList = await deps.getAccounts!(userId, userSecret)
 
       let accountsUpdated = 0
       let balancesUpdated = 0
 
       // Update or create accounts
-      for (const snapAccount of snaptradeAccounts) {
+      for (const snapAccount of snaptradeAccountsList) {
         // Upsert account
         const account = AccountModel.upsert({
           connectionId: connection.id,
           externalId: snapAccount.id,
-          accountNumberMasked: snapAccount.number || '•••• 0000',
+          accountNumberMasked: snapAccount.number || '.... 0000',
           accountName: snapAccount.name || 'Account',
           accountType: snapAccount.type || null,
         })
@@ -179,14 +184,10 @@ export class ConnectionService {
         accountsUpdated++
 
         // Fetch holdings for this account
-        const holdings = await deps.getHoldings!(
-          connection.snaptradeUserId,
-          connection.snaptradeUserSecret,
-          snapAccount.id
-        )
+        const holdingsData = await deps.getHoldings!(userId, userSecret, snapAccount.id)
 
-        // Calculate total value
-        const totalValue = holdings.reduce((sum, holding) => {
+        // Calculate total value from holdings
+        const totalValue = holdingsData.holdings.reduce((sum, holding) => {
           const value = holding.price * holding.units
           return sum + value
         }, 0)
@@ -218,7 +219,7 @@ export class ConnectionService {
       console.error('Sync failed:', error)
 
       // Update connection with error status
-      const updatedConnection = ConnectionModel.updateSyncStatus(
+      ConnectionModel.updateSyncStatus(
         connection.id,
         false,
         error instanceof Error ? error.message : 'Unknown sync error'
@@ -229,7 +230,8 @@ export class ConnectionService {
   }
 
   /**
-   * Delete a connection and clean up SnapTrade resources
+   * Delete a connection.
+   * Note: Does NOT delete the SnapTrade user since it's shared across all connections.
    */
   static async deleteConnection(connectionId: number): Promise<void> {
     const connection = ConnectionModel.findById(connectionId)
@@ -237,15 +239,10 @@ export class ConnectionService {
       throw new Error(`Connection ${connectionId} not found`)
     }
 
-    try {
-      // Delete SnapTrade user if exists
-      if (connection.snaptradeUserId) {
-        await deps.deleteSnaptradeUser!(connection.snaptradeUserId)
-      }
-    } catch (error) {
-      // Log but don't fail if SnapTrade deletion fails
-      console.warn('Failed to delete SnapTrade user:', error)
-    }
+    // Note: We do NOT delete the SnapTrade user because:
+    // 1. It's a fixed user shared across all connections
+    // 2. Deleting it would break other connections
+    // The brokerage authorization within SnapTrade will be managed separately if needed
 
     // Delete connection (cascades to credentials and accounts)
     ConnectionModel.delete(connectionId)

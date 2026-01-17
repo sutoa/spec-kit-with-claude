@@ -2,8 +2,9 @@ import { ConnectionModel } from '../models/connection.js'
 import { InstitutionModel } from '../models/institution.js'
 import { AccountModel } from '../models/account.js'
 import { BalanceRecordModel } from '../models/balance.js'
-import { ConnectionService } from './connection.js'
-import type { DashboardReport, InstitutionSummary } from '../types/index.js'
+import * as snaptradeAccounts from './snaptrade/accounts.js'
+import * as snaptradeHoldings from './snaptrade/holdings.js'
+import type { DashboardReport, InstitutionSummary, AccountBalance } from '../types/index.js'
 
 export interface DashboardOptions {
   asOfDate?: string
@@ -20,26 +21,35 @@ export interface RefreshResult {
 }
 
 /**
- * DashboardService handles dashboard aggregation and refresh operations
+ * Get fixed SnapTrade user credentials from environment variables
+ */
+function getFixedSnaptradeCredentials(): { userId: string; userSecret: string } | null {
+  const userId = process.env.SNAPTRADE_USER_ID
+  const userSecret = process.env.SNAPTRADE_USER_SECRET
+
+  if (!userId || !userSecret || userId === 'your-user-id-here' || userSecret === 'your-user-secret-here') {
+    return null
+  }
+
+  return { userId, userSecret }
+}
+
+/**
+ * DashboardService handles dashboard aggregation and refresh operations.
+ *
+ * MVP Mode: Fetches accounts directly from SnapTrade using fixed user credentials,
+ * rather than requiring local connection records.
  */
 export class DashboardService {
   /**
-   * Get the consolidated dashboard report
+   * Get the consolidated dashboard report.
+   * Fetches accounts directly from SnapTrade for the fixed user.
    */
-  static getDashboard(options: DashboardOptions = {}): DashboardReport {
+  static async getDashboard(options: DashboardOptions = {}): Promise<DashboardReport> {
     const { asOfDate, institutionIds } = options
 
-    // Get all connections
-    let connections = ConnectionModel.findAll()
-
-    // Filter by institution IDs if provided
-    if (institutionIds && institutionIds.length > 0) {
-      connections = connections.filter((conn) =>
-        institutionIds.includes(conn.institutionId)
-      )
-    }
-
-    if (connections.length === 0) {
+    const creds = getFixedSnaptradeCredentials()
+    if (!creds) {
       return {
         asOfDate: asOfDate || null,
         grandTotal: 0,
@@ -48,127 +58,154 @@ export class DashboardService {
       }
     }
 
-    // Group accounts by institution
-    const institutionMap = new Map<string, InstitutionSummary>()
+    try {
+      // Fetch accounts directly from SnapTrade
+      const snapAccounts = await snaptradeAccounts.listUserAccounts(creds.userId, creds.userSecret)
 
-    for (const connection of connections) {
-      const institution = InstitutionModel.findById(connection.institutionId)
-      if (!institution) continue
-
-      // Get accounts for this connection
-      const accounts = AccountModel.findByConnectionId(connection.id)
-
-      // Initialize institution summary if not exists
-      if (!institutionMap.has(institution.id)) {
-        institutionMap.set(institution.id, {
-          institutionId: institution.id,
-          institutionName: institution.name,
-          subTotal: 0,
-          accounts: [],
-        })
+      if (snapAccounts.length === 0) {
+        return {
+          asOfDate: asOfDate || null,
+          grandTotal: 0,
+          totalInstitutions: 0,
+          institutions: [],
+        }
       }
 
-      const instSummary = institutionMap.get(institution.id)!
+      // Group accounts by institution name
+      const institutionMap = new Map<string, InstitutionSummary>()
 
-      // Add accounts with their latest balances
-      for (const account of accounts) {
-        let balance
+      for (const account of snapAccounts) {
+        const instName = account.institutionName || 'Unknown Institution'
 
-        if (asOfDate) {
-          // Get balance for specific date
-          balance = BalanceRecordModel.getAsOfDate(account.id, asOfDate)
-        } else {
-          // Get latest balance
-          balance = BalanceRecordModel.getLatestForAccount(account.id)
+        // Filter by institution if specified
+        if (institutionIds && institutionIds.length > 0) {
+          const instId = instName.toLowerCase().replace(/\s+/g, '-')
+          if (!institutionIds.includes(instId)) {
+            continue
+          }
         }
 
-        // Only include accounts that have balance records
-        if (balance) {
-          instSummary.accounts.push({
-            accountId: account.id,
-            accountName: account.accountName,
-            accountNumberMasked: account.accountNumberMasked,
-            totalValue: balance.totalValue,
-            asOfDate: balance.asOfDate instanceof Date
-              ? balance.asOfDate.toISOString().split('T')[0]
-              : balance.asOfDate,
+        // Initialize institution summary if not exists
+        if (!institutionMap.has(instName)) {
+          institutionMap.set(instName, {
+            institutionId: instName.toLowerCase().replace(/\s+/g, '-'),
+            institutionName: instName,
+            subTotal: 0,
+            accounts: [],
           })
-
-          instSummary.subTotal += balance.totalValue
         }
+
+        const instSummary = institutionMap.get(instName)!
+
+        // Get holdings for this account to calculate total value
+        let totalValue = 0
+        try {
+          const holdingsData = await snaptradeHoldings.getAccountHoldings(
+            creds.userId,
+            creds.userSecret,
+            account.id
+          )
+          totalValue = holdingsData.totalValue
+        } catch (e) {
+          console.warn(`Failed to fetch holdings for account ${account.id}:`, e)
+        }
+
+        // Add cash balance if available
+        const cashBalance = account.balance?.cash || 0
+        totalValue += cashBalance
+
+        const accountBalance: AccountBalance = {
+          accountId: account.id as unknown as number, // Use string ID from SnapTrade
+          accountName: account.name || 'Account',
+          accountNumberMasked: account.number ? `•••• ${account.number.slice(-4)}` : '•••• 0000',
+          totalValue,
+          asOfDate: new Date().toISOString().split('T')[0],
+        }
+
+        instSummary.accounts.push(accountBalance)
+        instSummary.subTotal += totalValue
       }
-    }
 
-    // Remove institutions with no accounts (no balances)
-    const institutions = Array.from(institutionMap.values()).filter(
-      (inst) => inst.accounts.length > 0
-    )
+      // Convert to array
+      const institutions = Array.from(institutionMap.values())
 
-    // Calculate grand total
-    const grandTotal = institutions.reduce((sum, inst) => sum + inst.subTotal, 0)
+      // Calculate grand total
+      const grandTotal = institutions.reduce((sum, inst) => sum + inst.subTotal, 0)
 
-    return {
-      asOfDate: asOfDate || null,
-      grandTotal,
-      totalInstitutions: institutions.length,
-      institutions,
+      return {
+        asOfDate: asOfDate || null,
+        grandTotal,
+        totalInstitutions: institutions.length,
+        institutions,
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard from SnapTrade:', error)
+      return {
+        asOfDate: asOfDate || null,
+        grandTotal: 0,
+        totalInstitutions: 0,
+        institutions: [],
+      }
     }
   }
 
   /**
-   * Refresh all API-connected institutions and return updated dashboard
+   * Refresh dashboard data from SnapTrade.
+   * With fixed user credentials, this simply refetches all account data.
    */
   static async refreshDashboard(): Promise<RefreshResult> {
-    const connections = ConnectionModel.findAll()
-    const syncResults: Array<{
-      institutionId: string
-      success: boolean
-      error: string | null
-    }> = []
+    const creds = getFixedSnaptradeCredentials()
 
-    // Sync each connection
-    for (const connection of connections) {
-      const institution = InstitutionModel.findById(connection.institutionId)
-
-      if (!institution) {
-        continue
-      }
-
-      // Only sync API-based institutions
-      if (institution.apiType !== 'api') {
-        continue
-      }
-
-      try {
-        await ConnectionService.syncConnection(connection.id)
-        syncResults.push({
-          institutionId: institution.id,
-          success: true,
-          error: null,
-        })
-      } catch (error) {
-        syncResults.push({
-          institutionId: institution.id,
+    if (!creds) {
+      return {
+        dashboard: {
+          asOfDate: null,
+          grandTotal: 0,
+          totalInstitutions: 0,
+          institutions: [],
+        },
+        syncResults: [{
+          institutionId: 'all',
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown sync error',
-        })
+          error: 'SnapTrade credentials not configured',
+        }],
       }
     }
 
-    // Get updated dashboard
-    const dashboard = this.getDashboard()
+    try {
+      // Fetch fresh data from SnapTrade
+      const dashboard = await this.getDashboard()
 
-    return {
-      dashboard,
-      syncResults,
+      return {
+        dashboard,
+        syncResults: [{
+          institutionId: 'all',
+          success: true,
+          error: null,
+        }],
+      }
+    } catch (error) {
+      return {
+        dashboard: {
+          asOfDate: null,
+          grandTotal: 0,
+          totalInstitutions: 0,
+          institutions: [],
+        },
+        syncResults: [{
+          institutionId: 'all',
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown sync error',
+        }],
+      }
     }
   }
 
   /**
    * Export dashboard data as CSV
    */
-  static exportDashboardCSV(options: DashboardOptions = {}): string {
-    const dashboard = this.getDashboard(options)
+  static async exportDashboardCSV(options: DashboardOptions = {}): Promise<string> {
+    const dashboard = await this.getDashboard(options)
 
     // CSV headers
     const headers = [

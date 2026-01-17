@@ -10,6 +10,8 @@ import type {
   SyncResult,
   RefreshResult,
   HealthResponse,
+  PortalUrlResponse,
+  ConnectionStatusResponse,
 } from '../types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
@@ -95,6 +97,17 @@ export async function syncConnection(id: number): Promise<SyncResult> {
   return request<SyncResult>(`/connections/${id}/sync`, {
     method: 'POST',
   })
+}
+
+export async function getPortalUrl(id: number, broker?: string): Promise<PortalUrlResponse> {
+  const searchParams = new URLSearchParams()
+  if (broker) searchParams.set('broker', broker)
+  const query = searchParams.toString()
+  return request<PortalUrlResponse>(`/connections/${id}/portal-url${query ? `?${query}` : ''}`)
+}
+
+export async function getConnectionStatus(id: number): Promise<ConnectionStatusResponse> {
+  return request<ConnectionStatusResponse>(`/connections/${id}/status`)
 }
 
 // Accounts

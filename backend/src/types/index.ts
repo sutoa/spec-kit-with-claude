@@ -1,7 +1,7 @@
 // Enums
 export type InstitutionApiType = 'api' | 'manual'
 export type InstitutionAuthType = 'api_key' | 'oauth' | 'credentials' | 'none'
-export type ConnectionStatus = 'connected' | 'disconnected' | 'error'
+export type ConnectionStatus = 'connected' | 'disconnected' | 'error' | 'pending'
 
 // Database Entities
 export interface Institution {

@@ -8,20 +8,22 @@ import { ConnectionService } from '../services/connection.js'
 const router: RouterType = Router()
 
 // Validation schemas
+const CredentialsSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('api_key'),
+    apiKey: z.string().min(1, 'API key is required'),
+    apiSecret: z.string().min(1, 'API secret is required'),
+  }),
+  z.object({
+    type: z.literal('credentials'),
+    username: z.string().min(1, 'Username is required'),
+    password: z.string().min(1, 'Password is required'),
+  }),
+])
+
 const CreateConnectionSchema = z.object({
   institutionId: z.string().min(1, 'Institution ID is required'),
-  credentials: z.discriminatedUnion('type', [
-    z.object({
-      type: z.literal('api_key'),
-      apiKey: z.string().min(1, 'API key is required'),
-      apiSecret: z.string().min(1, 'API secret is required'),
-    }),
-    z.object({
-      type: z.literal('credentials'),
-      username: z.string().min(1, 'Username is required'),
-      password: z.string().min(1, 'Password is required'),
-    }),
-  ]),
+  credentials: CredentialsSchema.optional(),
 })
 
 /**
@@ -206,6 +208,82 @@ router.post('/:id/sync', async (req: Request, res: Response, next: NextFunction)
     // Sync using ConnectionService
     const result = await ConnectionService.syncConnection(connectionId)
     res.json(result)
+  } catch (error) {
+    next(error)
+  }
+})
+
+/**
+ * GET /connections/:id/portal-url
+ * Get the SnapTrade connection portal URL for OAuth authentication
+ */
+router.get('/:id/portal-url', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const connectionId = parseInt(req.params.id, 10)
+
+    if (isNaN(connectionId)) {
+      res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid connection ID format. Must be a number.',
+      })
+      return
+    }
+
+    const connection = ConnectionModel.findById(connectionId)
+
+    if (!connection) {
+      res.status(404).json({
+        error: 'NOT_FOUND',
+        message: `Connection with id ${connectionId} not found.`,
+      })
+      return
+    }
+
+    // Get the SnapTrade portal URL
+    const broker = req.query.broker as string | undefined
+    const portalUrl = await ConnectionService.getConnectionPortalUrl(connectionId, broker)
+
+    res.json({ url: portalUrl })
+  } catch (error) {
+    next(error)
+  }
+})
+
+/**
+ * GET /connections/:id/status
+ * Get the connection status (used for polling after OAuth)
+ */
+router.get('/:id/status', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const connectionId = parseInt(req.params.id, 10)
+
+    if (isNaN(connectionId)) {
+      res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: 'Invalid connection ID format. Must be a number.',
+      })
+      return
+    }
+
+    const connection = ConnectionModel.findById(connectionId)
+
+    if (!connection) {
+      res.status(404).json({
+        error: 'NOT_FOUND',
+        message: `Connection with id ${connectionId} not found.`,
+      })
+      return
+    }
+
+    const accounts = AccountModel.findByConnectionId(connectionId)
+
+    res.json({
+      id: connection.id,
+      status: connection.status,
+      lastSyncAt: connection.lastSyncAt,
+      errorMessage: connection.errorMessage,
+      accountCount: accounts.length,
+    })
   } catch (error) {
     next(error)
   }

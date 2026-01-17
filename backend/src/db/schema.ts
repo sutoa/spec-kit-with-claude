@@ -18,7 +18,7 @@ export function initSchema(db: Database.Database): void {
     CREATE TABLE IF NOT EXISTS connections (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       institution_id TEXT NOT NULL UNIQUE REFERENCES institutions(id),
-      status TEXT NOT NULL DEFAULT 'disconnected' CHECK (status IN ('connected', 'disconnected', 'error')),
+      status TEXT NOT NULL DEFAULT 'disconnected' CHECK (status IN ('connected', 'disconnected', 'error', 'pending')),
       last_sync_at TEXT,
       error_message TEXT,
       snaptrade_user_id TEXT,

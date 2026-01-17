@@ -1,7 +1,7 @@
 // Enums
 export type InstitutionApiType = 'api' | 'manual'
 export type InstitutionAuthType = 'api_key' | 'oauth' | 'credentials' | 'none'
-export type ConnectionStatus = 'connected' | 'disconnected' | 'error'
+export type ConnectionStatus = 'connected' | 'disconnected' | 'error' | 'pending'
 
 // Base Entities
 export interface Institution {
@@ -136,4 +136,17 @@ export interface RefreshResult {
 export interface HealthResponse {
   status: 'ok' | 'error'
   timestamp: string
+}
+
+// OAuth Flow Types
+export interface PortalUrlResponse {
+  url: string
+}
+
+export interface ConnectionStatusResponse {
+  id: number
+  status: ConnectionStatus
+  lastSyncAt: string | null
+  errorMessage: string | null
+  accountCount: number
 }

@@ -60,7 +60,7 @@ describe('POST /api/connections', () => {
     expect(response.body).toMatchObject({
       id: expect.any(Number),
       institutionId: 'alpaca',
-      status: 'connected',
+      status: 'pending', // Starts as pending until OAuth is completed
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     });
@@ -85,7 +85,7 @@ describe('POST /api/connections', () => {
     expect(response.body).toMatchObject({
       id: expect.any(Number),
       institutionId: 'vanguard',
-      status: 'connected',
+      status: 'pending', // Starts as pending until OAuth is completed
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     });
@@ -110,18 +110,22 @@ describe('POST /api/connections', () => {
     });
   });
 
-  it('should return 400 for missing credentials', async () => {
+  it('should create connection without credentials (OAuth flow)', async () => {
+    // OAuth institutions don't require credentials upfront
     const response = await request(app)
       .post('/api/connections')
       .send({
         institutionId: 'alpaca',
       })
       .expect('Content-Type', /json/)
-      .expect(400);
+      .expect(201);
 
     expect(response.body).toMatchObject({
-      error: expect.any(String),
-      message: expect.any(String),
+      id: expect.any(Number),
+      institutionId: 'alpaca',
+      status: 'pending',
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     });
   });
 

@@ -9,6 +9,7 @@ interface InstitutionCardProps {
 
 export function InstitutionCard({ institution, onConnect, onDisconnect }: InstitutionCardProps) {
   const [showMenu, setShowMenu] = useState(false)
+  const [logoError, setLogoError] = useState(false)
   const isConnected = institution.connection?.status === 'connected'
 
   const handleConnect = () => {
@@ -34,11 +35,12 @@ export function InstitutionCard({ institution, onConnect, onDisconnect }: Instit
         <div className="flex items-start gap-4 flex-1">
           {/* Institution Logo */}
           <div className="w-12 h-12 bg-input-bg-dark rounded-lg flex items-center justify-center flex-shrink-0">
-            {institution.logoUrl ? (
+            {institution.logoUrl && !logoError ? (
               <img
                 src={institution.logoUrl}
                 alt={`${institution.name} logo`}
                 className="w-8 h-8 object-contain"
+                onError={() => setLogoError(true)}
               />
             ) : (
               <span className="material-symbols-outlined text-text-secondary-dark text-2xl">

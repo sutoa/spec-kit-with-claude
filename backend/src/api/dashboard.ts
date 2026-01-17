@@ -7,7 +7,7 @@ const router: RouterType = Router()
  * GET /dashboard
  * Get consolidated dashboard report
  */
-router.get('/', (req: Request, res: Response, next: NextFunction) => {
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const asOfDate = req.query.asOfDate as string | undefined
     const institutionIdsParam = req.query.institutionIds as string | string[] | undefined
@@ -22,7 +22,7 @@ router.get('/', (req: Request, res: Response, next: NextFunction) => {
       }
     }
 
-    const dashboard = DashboardService.getDashboard({
+    const dashboard = await DashboardService.getDashboard({
       asOfDate,
       institutionIds,
     })
@@ -50,11 +50,11 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
  * GET /dashboard/export
  * Export dashboard as CSV
  */
-router.get('/export', (req: Request, res: Response, next: NextFunction) => {
+router.get('/export', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const asOfDate = req.query.asOfDate as string | undefined
 
-    const csv = DashboardService.exportDashboardCSV({ asOfDate })
+    const csv = await DashboardService.exportDashboardCSV({ asOfDate })
 
     const filename = asOfDate
       ? `account-report-${asOfDate}.csv`

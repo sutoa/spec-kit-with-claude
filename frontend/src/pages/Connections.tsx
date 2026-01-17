@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Header } from '../components/layout/Header'
 import { InstitutionList } from '../components/connections/InstitutionList'
 import { ConnectModal } from '../components/connections/ConnectModal'
 import { DisconnectConfirmModal } from '../components/connections/DisconnectConfirmModal'
-import { useInstitutions, useCreateConnection, useDeleteConnection } from '../hooks/useInstitutions'
-import type { InstitutionWithConnection, CredentialData } from '../types'
+import { useInstitutions, useDeleteConnection } from '../hooks/useInstitutions'
+import type { InstitutionWithConnection } from '../types'
 
 export function Connections() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -16,11 +17,12 @@ export function Connections() {
     institutionName: string
   } | null>(null)
 
+  const queryClient = useQueryClient()
+
   // Fetch institutions
   const { data: institutions = [], isLoading, error } = useInstitutions()
 
   // Mutations
-  const createConnection = useCreateConnection()
   const deleteConnection = useDeleteConnection()
 
   // Handlers
@@ -32,8 +34,9 @@ export function Connections() {
     setDisconnectConnection(connection)
   }
 
-  const handleConnectSubmit = async (institutionId: string, credentials: CredentialData) => {
-    await createConnection.mutateAsync({ institutionId, credentials })
+  const handleConnectSuccess = () => {
+    // Refetch institutions to update connection status
+    queryClient.invalidateQueries({ queryKey: ['institutions'] })
   }
 
   const handleDisconnectConfirm = async (connectionId: number) => {
@@ -106,7 +109,7 @@ export function Connections() {
         institution={selectedInstitution}
         isOpen={selectedInstitution !== null}
         onClose={() => setSelectedInstitution(null)}
-        onSubmit={handleConnectSubmit}
+        onSuccess={handleConnectSuccess}
       />
 
       {/* Disconnect Confirm Modal */}

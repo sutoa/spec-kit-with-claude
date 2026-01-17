@@ -13,7 +13,7 @@ const institutions: InstitutionSeed[] = [
   {
     id: 'alpaca',
     name: 'Alpaca',
-    logo_url: '/logos/alpaca.svg',
+    logo_url: 'https://files.alpaca.markets/webassets/alpaca-logo-no-padding.png',
     api_type: 'api',
     api_base_url: 'https://api.alpaca.markets',
     auth_type: 'oauth',
@@ -21,7 +21,7 @@ const institutions: InstitutionSeed[] = [
   {
     id: 'vanguard',
     name: 'Vanguard',
-    logo_url: '/logos/vanguard.svg',
+    logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Vanguard_Logo.svg/200px-Vanguard_Logo.svg.png',
     api_type: 'api',
     api_base_url: null,
     auth_type: 'oauth',
@@ -29,7 +29,7 @@ const institutions: InstitutionSeed[] = [
   {
     id: 'schwab',
     name: 'Schwab',
-    logo_url: '/logos/schwab.svg',
+    logo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Charles_Schwab_Corporation_logo.svg/200px-Charles_Schwab_Corporation_logo.svg.png',
     api_type: 'api',
     api_base_url: null,
     auth_type: 'oauth',

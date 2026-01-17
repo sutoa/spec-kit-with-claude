@@ -38,7 +38,21 @@ export async function getAccountHoldings(
     accountId,
   })
 
-  const rawHoldings = (response.data || []) as SnaptradeHoldingResponse[]
+  // Handle different response formats from SnapTrade API
+  let rawHoldings: SnaptradeHoldingResponse[] = []
+
+  if (Array.isArray(response.data)) {
+    rawHoldings = response.data as SnaptradeHoldingResponse[]
+  } else if (response.data && typeof response.data === 'object') {
+    // Some endpoints return { positions: [...] } or similar structure
+    const data = response.data as Record<string, unknown>
+    if (Array.isArray(data.positions)) {
+      rawHoldings = data.positions as SnaptradeHoldingResponse[]
+    } else if (Array.isArray(data.holdings)) {
+      rawHoldings = data.holdings as SnaptradeHoldingResponse[]
+    }
+  }
+
   const holdings: SnaptradeHolding[] = rawHoldings.map((holding) => ({
     symbol: holding.symbol?.symbol || 'UNKNOWN',
     description: holding.symbol?.description || '',

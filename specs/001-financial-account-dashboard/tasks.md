@@ -190,6 +190,28 @@
 
 ---
 
+## Phase 5.1: MVP Enhancement - Fixed SnapTrade User
+
+**Goal**: Use a fixed SnapTrade user ID and secret instead of creating new users for each connection
+
+**Rationale**: For MVP single-user operation, all connections should share the same SnapTrade user, simplifying management and avoiding orphaned user accounts.
+
+### Implementation
+
+- [X] T079 Add SNAPTRADE_USER_ID and SNAPTRADE_USER_SECRET to backend/.env configuration
+- [X] T080 Update ConnectionService.createConnection() in backend/src/services/connection.ts to use fixed user credentials from environment instead of registering new SnapTrade users
+- [X] T081 Update ConnectionService.syncConnection() in backend/src/services/connection.ts to use fixed user credentials from environment
+- [X] T082 Update ConnectionService.deleteConnection() in backend/src/services/connection.ts to NOT delete the SnapTrade user (since it's shared)
+- [X] T083 Update ConnectionService.getConnectionPortalUrl() in backend/src/services/connection.ts to use fixed user credentials from environment
+- [X] T084 Update Connection model schema in backend/src/db/schema.ts to make snaptrade_user_id and snaptrade_user_secret optional (can be null since using fixed user)
+- [X] T085 Update ConnectionModel in backend/src/models/connection.ts to handle optional SnapTrade credentials
+- [X] T086 Remove registerSnaptradeUser calls from connection creation flow
+- [X] T087 Test fixed user flow: create connection, complete OAuth, sync accounts, verify dashboard shows data
+
+**Checkpoint**: All connections use a single fixed SnapTrade user for MVP simplicity
+
+---
+
 ## Phase 6: User Story 4 - Filter Dashboard by Institution (Priority: P2 - Post-MVP)
 
 **Goal**: Filter dashboard to show only accounts from selected institutions
@@ -198,15 +220,15 @@
 
 ### Tests for User Story 4
 
-- [ ] T079 [P] [US4] Unit test for InstitutionFilter component in frontend/tests/unit/InstitutionFilter.test.tsx
+- [ ] T088 [P] [US4] Unit test for InstitutionFilter component in frontend/tests/unit/InstitutionFilter.test.tsx
 
 ### Implementation for User Story 4
 
-- [ ] T080 [US4] Add institutionIds query param support to GET /dashboard in backend/src/api/dashboard.ts
-- [ ] T081 [US4] Create InstitutionFilter component (checkboxes) in frontend/src/components/dashboard/InstitutionFilter.tsx
-- [ ] T082 [US4] Update FilterPanel to include institution checkboxes in frontend/src/components/dashboard/FilterPanel.tsx
-- [ ] T083 [US4] Update useDashboard hook to support institution filtering in frontend/src/hooks/useDashboard.ts
-- [ ] T084 [US4] Update Dashboard page to wire up institution filter in frontend/src/pages/Dashboard.tsx
+- [ ] T089 [US4] Add institutionIds query param support to GET /dashboard in backend/src/api/dashboard.ts
+- [ ] T090 [US4] Create InstitutionFilter component (checkboxes) in frontend/src/components/dashboard/InstitutionFilter.tsx
+- [ ] T091 [US4] Update FilterPanel to include institution checkboxes in frontend/src/components/dashboard/FilterPanel.tsx
+- [ ] T092 [US4] Update useDashboard hook to support institution filtering in frontend/src/hooks/useDashboard.ts
+- [ ] T093 [US4] Update Dashboard page to wire up institution filter in frontend/src/pages/Dashboard.tsx
 
 **Checkpoint**: Institution filtering complete (Post-MVP feature)
 
@@ -218,30 +240,30 @@
 
 ### Error Handling & Edge Cases
 
-- [ ] T085 [P] Implement "no connected institutions" state in Dashboard with prompt message
-- [ ] T086 [P] Implement credential validation failure UI in ConnectModal
-- [ ] T087 [P] Implement institution service unavailable state (cached data + warning)
-- [ ] T088 [P] Implement "data not available for date" notification
-- [ ] T089 [P] Implement disconnected institution warning indicator
+- [ ] T094 [P] Implement "no connected institutions" state in Dashboard with prompt message
+- [ ] T095 [P] Implement credential validation failure UI in ConnectModal
+- [ ] T096 [P] Implement institution service unavailable state (cached data + warning)
+- [ ] T097 [P] Implement "data not available for date" notification
+- [ ] T098 [P] Implement disconnected institution warning indicator
 
 ### Performance & UX
 
-- [ ] T090 Add loading spinners and skeleton states to all data fetches
-- [ ] T091 Implement response caching for dashboard data
-- [ ] T092 Add optimistic updates for connection status changes
+- [ ] T099 Add loading spinners and skeleton states to all data fetches
+- [ ] T100 Implement response caching for dashboard data
+- [ ] T101 Add optimistic updates for connection status changes
 
 ### Accessibility (WCAG 2.1 AA)
 
-- [ ] T093 [P] Add ARIA labels to all interactive components
-- [ ] T094 [P] Ensure keyboard navigation works for all UI elements
-- [ ] T095 [P] Verify color contrast meets WCAG AA standards
+- [ ] T102 [P] Add ARIA labels to all interactive components
+- [ ] T103 [P] Ensure keyboard navigation works for all UI elements
+- [ ] T104 [P] Verify color contrast meets WCAG AA standards
 
 ### Documentation & Cleanup
 
-- [ ] T096 [P] Add JSDoc comments to all public backend services
-- [ ] T097 [P] Add JSDoc comments to all React components
-- [ ] T098 Run quickstart.md verification checklist
-- [ ] T099 Final code cleanup and unused import removal
+- [ ] T105 [P] Add JSDoc comments to all public backend services
+- [ ] T106 [P] Add JSDoc comments to all React components
+- [ ] T107 Run quickstart.md verification checklist
+- [ ] T108 Final code cleanup and unused import removal
 
 ---
 
@@ -254,6 +276,7 @@
 - **Phase 3 (US3 Navigation)**: Depends on Phase 2 - Provides layout for other stories
 - **Phase 4 (US2 Connections)**: Depends on Phase 2 + Phase 3
 - **Phase 5 (US1 Dashboard)**: Depends on Phase 2 + Phase 3 + Phase 4 (needs connected institutions)
+- **Phase 5.1 (Fixed SnapTrade User)**: Depends on Phase 5 - MVP enhancement
 - **Phase 6 (US4 Filtering)**: Depends on Phase 5 - Post-MVP
 - **Phase 7 (Polish)**: Depends on Phase 5
 
@@ -270,6 +293,9 @@ Phase 4 (US2: Connections) ────┤
         │                      │
         ▼                      │
 Phase 5 (US1: Dashboard) ──────┘
+        │
+        ▼
+Phase 5.1 (Fixed SnapTrade User) [MVP Enhancement]
         │
         ▼
 Phase 6 (US4: Filtering) [Post-MVP]
@@ -328,24 +354,31 @@ T059, T060, T061, T062
 T069, T070, T071
 ```
 
+**Phase 5.1 (Fixed SnapTrade User)**:
+```bash
+# Must be sequential - schema changes before model changes before service changes
+T079 → T084 → T085 → T080 → T081 → T082 → T083 → T086 → T087
+```
+
 ---
 
 ## Implementation Strategy
 
-### MVP First (User Stories 1, 2, 3 Only)
+### MVP First (User Stories 1, 2, 3 + Fixed User)
 
 1. Complete Phase 1: Setup
 2. Complete Phase 2: Foundational (CRITICAL)
 3. Complete Phase 3: Navigation (US3)
 4. Complete Phase 4: Connections (US2)
 5. Complete Phase 5: Dashboard (US1)
-6. **STOP and VALIDATE**: Test full MVP flow
-7. Deploy/demo MVP
+6. Complete Phase 5.1: Fixed SnapTrade User (MVP Enhancement)
+7. **STOP and VALIDATE**: Test full MVP flow
+8. Deploy/demo MVP
 
 ### MVP Scope
 
 - Navigation layout with Dashboard/Connections views
-- Connect/disconnect institutions via SnapTrade
+- Connect/disconnect institutions via SnapTrade (using fixed user)
 - View consolidated dashboard with grouping and totals
 - As-of date filtering
 - Export report (CSV)
@@ -366,9 +399,10 @@ T069, T070, T071
 | 3 | US3 Navigation | 9 | P1 (MVP) |
 | 4 | US2 Connections | 17 | P1 (MVP) |
 | 5 | US1 Dashboard | 20 | P1 (MVP) |
+| 5.1 | Fixed SnapTrade User | 9 | P1 (MVP Enhancement) |
 | 6 | US4 Filtering | 6 | P2 (Post-MVP) |
 | 7 | Polish | 15 | - |
-| **Total** | | **99** | |
+| **Total** | | **108** | |
 
 ### Tasks by User Story
 
@@ -377,6 +411,7 @@ T069, T070, T071
 - **US3 (Navigation)**: 9 tasks
 - **US4 (Filtering)**: 6 tasks (Post-MVP)
 - **Infrastructure**: 32 tasks (Setup + Foundational)
+- **Fixed SnapTrade User**: 9 tasks (MVP Enhancement)
 - **Polish**: 15 tasks
 
 ### Parallel Opportunities
@@ -385,3 +420,4 @@ T069, T070, T071
 - **Foundational**: Multiple parallel groups (types, models, services)
 - **Per Story**: Tests parallelizable, components often parallelizable
 - **Cross-Story**: US3 → US2 → US1 must be sequential (dependencies)
+- **Fixed User**: Must be sequential (schema → model → service changes)
