@@ -11,11 +11,11 @@ interface InstitutionSeed {
 
 const institutions: InstitutionSeed[] = [
   {
-    id: 'alpaca',
-    name: 'Alpaca',
+    id: 'alpaca-paper',
+    name: 'Alpaca Paper',
     logo_url: 'https://files.alpaca.markets/webassets/alpaca-logo-no-padding.png',
     api_type: 'api',
-    api_base_url: 'https://api.alpaca.markets',
+    api_base_url: 'https://paper-api.alpaca.markets',
     auth_type: 'oauth',
   },
   {

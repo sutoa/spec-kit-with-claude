@@ -45,19 +45,32 @@ router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
       }
     }
 
-    // Create a map of connected brokerages by name/slug for quick lookup
+    // Helper function to normalize names for matching
+    const normalizeName = (name: string): string => {
+      return name.toLowerCase()
+        .replace(/\s+/g, '') // Remove spaces
+        .replace(/paper|sandbox|test|demo/gi, '') // Remove common suffixes
+        .trim()
+    }
+
+    // Create a map of connected brokerages by normalized name/slug for quick lookup
     const connectedMap = new Map<string, typeof connectedBrokerages[0]>()
     for (const brokerage of connectedBrokerages) {
-      // Map by both name and slug (lowercase for matching)
+      // Map by both name and slug (normalized for matching)
+      connectedMap.set(normalizeName(brokerage.brokerageName), brokerage)
+      connectedMap.set(normalizeName(brokerage.brokerageSlug), brokerage)
+      // Also store the original lowercase versions
       connectedMap.set(brokerage.brokerageName.toLowerCase(), brokerage)
       connectedMap.set(brokerage.brokerageSlug.toLowerCase(), brokerage)
     }
 
     // Enhance institutions with connection status from SnapTrade
     const institutionsWithConnections: InstitutionWithConnection[] = institutions.map((inst) => {
-      // Try to match by institution name or id
+      // Try to match by institution name or id (using both exact and normalized matching)
       const connected = connectedMap.get(inst.name.toLowerCase()) ||
-                       connectedMap.get(inst.id.toLowerCase())
+                       connectedMap.get(inst.id.toLowerCase()) ||
+                       connectedMap.get(normalizeName(inst.name)) ||
+                       connectedMap.get(normalizeName(inst.id))
 
       if (connected) {
         // Calculate relative time
@@ -133,12 +146,22 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     let isConnected = false
     let connectedAt: Date | null = null
 
+    // Helper function to normalize names for matching
+    const normalizeName = (name: string): string => {
+      return name.toLowerCase()
+        .replace(/\s+/g, '') // Remove spaces
+        .replace(/paper|sandbox|test|demo/gi, '') // Remove common suffixes
+        .trim()
+    }
+
     if (creds) {
       try {
         const connections = await snaptradeAccounts.listUserConnections(creds.userId, creds.userSecret)
         const match = connections.find(
           (c) => c.brokerageName.toLowerCase() === institution.name.toLowerCase() ||
-                 c.brokerageSlug.toLowerCase() === institution.id.toLowerCase()
+                 c.brokerageSlug.toLowerCase() === institution.id.toLowerCase() ||
+                 normalizeName(c.brokerageName) === normalizeName(institution.name) ||
+                 normalizeName(c.brokerageSlug) === normalizeName(institution.id)
         )
         if (match) {
           isConnected = true
