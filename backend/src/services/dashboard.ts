@@ -110,8 +110,21 @@ export class DashboardService {
           console.warn(`Failed to fetch holdings for account ${account.id}:`, e)
         }
 
-        // Add cash balance if available
-        const cashBalance = account.balance?.cash || 0
+        // Add cash balance - use dedicated balance API if listUserAccounts doesn't have it
+        let cashBalance = account.balance?.cash ?? null
+        if (cashBalance === null) {
+          try {
+            const balanceData = await snaptradeAccounts.getAccountBalances(
+              creds.userId,
+              creds.userSecret,
+              account.id
+            )
+            cashBalance = balanceData.cash ?? 0
+          } catch (e) {
+            console.warn(`Failed to fetch balance for account ${account.id}:`, e)
+            cashBalance = 0
+          }
+        }
         totalValue += cashBalance
 
         const accountBalance: AccountBalance = {
