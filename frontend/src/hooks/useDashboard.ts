@@ -32,11 +32,21 @@ export interface RefreshResult {
   }>
 }
 
-export function useDashboard(asOfDate?: string) {
+export interface UseDashboardOptions {
+  asOfDate?: string
+  institutionIds?: string[]
+}
+
+export function useDashboard(options?: UseDashboardOptions) {
+  const { asOfDate, institutionIds } = options || {}
+
   const query = useQuery({
-    queryKey: ['dashboard', asOfDate],
+    queryKey: ['dashboard', asOfDate, institutionIds],
     queryFn: async () => {
-      return getDashboard(asOfDate ? { asOfDate } : undefined)
+      const params: { asOfDate?: string; institutionIds?: string[] } = {}
+      if (asOfDate) params.asOfDate = asOfDate
+      if (institutionIds?.length) params.institutionIds = institutionIds
+      return getDashboard(Object.keys(params).length > 0 ? params : undefined)
     },
   })
 

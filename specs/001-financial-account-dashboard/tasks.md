@@ -239,8 +239,8 @@
 
 ### Testing for Add New Connections
 
-- [ ] T120 [P] [US2] Unit test for AddInstitutionModal component in frontend/tests/unit/AddInstitutionModal.test.tsx
-- [ ] T121 [P] [US2] Integration test for GET /api/brokerages endpoint in backend/tests/integration/brokerages.test.ts
+- [X] T120 [P] [US2] Unit test for AddInstitutionModal component in frontend/tests/unit/AddInstitutionModal.test.tsx
+- [X] T121 [P] [US2] Integration test for GET /api/brokerages endpoint in backend/tests/integration/brokerages.test.ts
 
 **Checkpoint**: Users can now connect to any of 24+ SnapTrade brokerages, not just the 3 hardcoded ones
 
@@ -254,15 +254,15 @@
 
 ### Tests for User Story 4
 
-- [ ] T088 [P] [US4] Unit test for InstitutionFilter component in frontend/tests/unit/InstitutionFilter.test.tsx
+- [X] T088 [P] [US4] Unit test for InstitutionFilter component in frontend/tests/unit/InstitutionFilter.test.tsx
 
 ### Implementation for User Story 4
 
-- [ ] T089 [US4] Add institutionIds query param support to GET /dashboard in backend/src/api/dashboard.ts
-- [ ] T090 [US4] Create InstitutionFilter component (checkboxes) in frontend/src/components/dashboard/InstitutionFilter.tsx
-- [ ] T091 [US4] Update FilterPanel to include institution checkboxes in frontend/src/components/dashboard/FilterPanel.tsx
-- [ ] T092 [US4] Update useDashboard hook to support institution filtering in frontend/src/hooks/useDashboard.ts
-- [ ] T093 [US4] Update Dashboard page to wire up institution filter in frontend/src/pages/Dashboard.tsx
+- [X] T089 [US4] Add institutionIds query param support to GET /dashboard in backend/src/api/dashboard.ts
+- [X] T090 [US4] Create InstitutionFilter component (checkboxes) in frontend/src/components/dashboard/InstitutionFilter.tsx
+- [X] T091 [US4] Update FilterPanel to include institution checkboxes in frontend/src/components/dashboard/FilterPanel.tsx
+- [X] T092 [US4] Update useDashboard hook to support institution filtering in frontend/src/hooks/useDashboard.ts
+- [X] T093 [US4] Update Dashboard page to wire up institution filter in frontend/src/pages/Dashboard.tsx
 
 **Checkpoint**: Institution filtering complete (Post-MVP feature)
 

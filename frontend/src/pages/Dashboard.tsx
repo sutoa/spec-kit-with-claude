@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Header } from '../components/layout/Header'
 import { GrandTotal } from '../components/dashboard/GrandTotal'
 import { TotalInstitutions } from '../components/dashboard/TotalInstitutions'
@@ -8,8 +8,27 @@ import { useDashboard, useRefreshDashboard, useExportDashboard } from '../hooks/
 
 export function Dashboard() {
   const [asOfDate, setAsOfDate] = useState('')
+  const [selectedInstitutionIds, setSelectedInstitutionIds] = useState<string[]>([])
 
-  const { data: dashboard, isLoading, error } = useDashboard(asOfDate || undefined)
+  // Fetch dashboard data with filters
+  const { data: dashboard, isLoading, error } = useDashboard({
+    asOfDate: asOfDate || undefined,
+    institutionIds: selectedInstitutionIds.length > 0 ? selectedInstitutionIds : undefined,
+  })
+
+  // Get all unique institutions for filter dropdown (fetch without filter to get full list)
+  const { data: fullDashboard } = useDashboard({
+    asOfDate: asOfDate || undefined,
+  })
+
+  // Extract unique institutions for the filter
+  const availableInstitutions = useMemo(() => {
+    if (!fullDashboard?.institutions) return []
+    return fullDashboard.institutions.map((inst) => ({
+      id: inst.institutionId,
+      name: inst.institutionName,
+    }))
+  }, [fullDashboard])
   const refreshMutation = useRefreshDashboard()
   const { exportDashboard } = useExportDashboard()
 
@@ -73,6 +92,9 @@ export function Dashboard() {
             onRefresh={handleRefresh}
             onExport={handleExport}
             isRefreshing={refreshMutation.isPending}
+            institutions={availableInstitutions}
+            selectedInstitutionIds={selectedInstitutionIds}
+            onInstitutionFilterChange={setSelectedInstitutionIds}
           />
 
           {hasNoData ? (
