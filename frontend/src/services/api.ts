@@ -12,6 +12,7 @@ import type {
   HealthResponse,
   PortalUrlResponse,
   ConnectionStatusResponse,
+  Brokerage,
 } from '../types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
@@ -108,6 +109,16 @@ export async function getPortalUrl(id: number, broker?: string): Promise<PortalU
 
 export async function getConnectionStatus(id: number): Promise<ConnectionStatusResponse> {
   return request<ConnectionStatusResponse>(`/connections/${id}/status`)
+}
+
+// Brokerages
+export async function getBrokerages(params?: {
+  showConnected?: boolean
+}): Promise<ApiResponse<Brokerage[]>> {
+  const searchParams = new URLSearchParams()
+  if (params?.showConnected === false) searchParams.set('showConnected', 'false')
+  const query = searchParams.toString()
+  return request<ApiResponse<Brokerage[]>>(`/brokerages${query ? `?${query}` : ''}`)
 }
 
 // Accounts

@@ -11,6 +11,8 @@ servers:
     description: Local development server
 
 tags:
+  - name: Brokerages
+    description: Available SnapTrade brokerages for connecting
   - name: Institutions
     description: Financial institution reference data and connections
   - name: Accounts
@@ -40,6 +42,54 @@ paths:
                   timestamp:
                     type: string
                     format: date-time
+
+  /brokerages:
+    get:
+      tags: [Brokerages]
+      summary: List all available SnapTrade brokerages
+      operationId: listBrokerages
+      description: |
+        Returns all brokerages available through SnapTrade, with an indicator of which ones
+        are already connected. Use this endpoint to discover new institutions to connect.
+      parameters:
+        - name: showConnected
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: If false, only returns unconnected brokerages
+      responses:
+        '200':
+          description: List of available brokerages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Brokerage'
+              example:
+                data:
+                  - id: "ALPACA-PAPER"
+                    name: "Alpaca Paper"
+                    slug: "ALPACA-PAPER"
+                    isConnected: true
+                  - id: "ROBINHOOD"
+                    name: "Robinhood"
+                    slug: "ROBINHOOD"
+                    isConnected: false
+                  - id: "INTERACTIVE-BROKERS-FLEX"
+                    name: "Interactive Brokers"
+                    slug: "INTERACTIVE-BROKERS-FLEX"
+                    isConnected: false
+        '502':
+          description: SnapTrade API error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /institutions:
     get:
@@ -401,6 +451,26 @@ paths:
 
 components:
   schemas:
+    Brokerage:
+      type: object
+      required: [id, name, slug, isConnected]
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the brokerage
+          example: "ROBINHOOD"
+        name:
+          type: string
+          description: Display name of the brokerage
+          example: "Robinhood"
+        slug:
+          type: string
+          description: URL-safe identifier used in OAuth flow
+          example: "ROBINHOOD"
+        isConnected:
+          type: boolean
+          description: Whether the user has an active connection to this brokerage
+
     Institution:
       type: object
       required: [id, name, apiType, authType]

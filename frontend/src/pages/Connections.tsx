@@ -4,14 +4,17 @@ import { Header } from '../components/layout/Header'
 import { InstitutionList } from '../components/connections/InstitutionList'
 import { ConnectModal } from '../components/connections/ConnectModal'
 import { DisconnectConfirmModal } from '../components/connections/DisconnectConfirmModal'
+import { AddInstitutionModal } from '../components/connections/AddInstitutionModal'
 import { useInstitutions, useDeleteConnection } from '../hooks/useInstitutions'
-import type { InstitutionWithConnection } from '../types'
+import type { InstitutionWithConnection, Brokerage } from '../types'
 
 export function Connections() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedInstitution, setSelectedInstitution] = useState<InstitutionWithConnection | null>(
     null
   )
+  const [selectedBrokerage, setSelectedBrokerage] = useState<Brokerage | null>(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [disconnectConnection, setDisconnectConnection] = useState<{
     id: number
     institutionName: string
@@ -35,8 +38,25 @@ export function Connections() {
   }
 
   const handleConnectSuccess = () => {
-    // Refetch institutions to update connection status
+    // Refetch institutions and brokerages to update connection status
     queryClient.invalidateQueries({ queryKey: ['institutions'] })
+    queryClient.invalidateQueries({ queryKey: ['brokerages'] })
+  }
+
+  const handleBrokerageSelect = (brokerage: Brokerage) => {
+    setIsAddModalOpen(false)
+    // Create a synthetic institution object for the ConnectModal
+    const syntheticInstitution: InstitutionWithConnection = {
+      id: brokerage.slug.toLowerCase(),
+      name: brokerage.name,
+      logoUrl: null,
+      apiType: 'api',
+      authType: 'oauth',
+      connection: null,
+      lastUpdatedRelative: null,
+    }
+    setSelectedBrokerage(brokerage)
+    setSelectedInstitution(syntheticInstitution)
   }
 
   const handleDisconnectConfirm = async (connectionId: number) => {
@@ -58,6 +78,13 @@ export function Connections() {
               Connect and manage your brokerage accounts
             </p>
           </div>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors font-medium"
+          >
+            <span className="material-symbols-outlined text-xl">add</span>
+            Add Institution
+          </button>
         </div>
 
         {/* Search Bar */}
@@ -108,8 +135,12 @@ export function Connections() {
       <ConnectModal
         institution={selectedInstitution}
         isOpen={selectedInstitution !== null}
-        onClose={() => setSelectedInstitution(null)}
+        onClose={() => {
+          setSelectedInstitution(null)
+          setSelectedBrokerage(null)
+        }}
         onSuccess={handleConnectSuccess}
+        brokerSlug={selectedBrokerage?.slug}
       />
 
       {/* Disconnect Confirm Modal */}
@@ -118,6 +149,13 @@ export function Connections() {
         isOpen={disconnectConnection !== null}
         onClose={() => setDisconnectConnection(null)}
         onConfirm={handleDisconnectConfirm}
+      />
+
+      {/* Add Institution Modal */}
+      <AddInstitutionModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSelect={handleBrokerageSelect}
       />
     </div>
   )

@@ -90,10 +90,10 @@ export class ConnectionService {
   static async createConnection(params: CreateConnectionParams): Promise<Connection> {
     const { institutionId, credentials } = params
 
-    // Validate institution exists
+    // Validate institution exists (should already be created by the API route)
     const institution = InstitutionModel.findById(institutionId)
     if (!institution) {
-      throw new Error(`Institution '${institutionId}' not found`)
+      throw new Error(`Institution '${institutionId}' not found. Please create it via the connections API.`)
     }
 
     // Check for existing connection

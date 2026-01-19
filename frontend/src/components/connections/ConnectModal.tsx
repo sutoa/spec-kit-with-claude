@@ -7,11 +7,12 @@ interface ConnectModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
+  brokerSlug?: string
 }
 
 type OAuthStep = 'idle' | 'creating' | 'opening' | 'waiting' | 'syncing' | 'complete' | 'error'
 
-export function ConnectModal({ institution, isOpen, onClose, onSuccess }: ConnectModalProps) {
+export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSlug }: ConnectModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -104,8 +105,8 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess }: Connec
       setConnectionId(connection.id)
       setOAuthStep('opening')
 
-      // Step 2: Get portal URL
-      const { url } = await getPortalUrl(connection.id)
+      // Step 2: Get portal URL (pass broker slug if provided)
+      const { url } = await getPortalUrl(connection.id, brokerSlug)
 
       // Step 3: Open popup
       const popup = window.open(

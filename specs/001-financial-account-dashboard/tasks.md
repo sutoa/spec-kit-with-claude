@@ -212,6 +212,40 @@
 
 ---
 
+## Phase 5.2: Add New Institution Connections (MVP Enhancement)
+
+**Goal**: Enable users to connect to any SnapTrade-supported brokerage (24+), not just the 3 hardcoded institutions
+
+**Independent Test**: Navigate to Connections page, click "Add Institution", search for a brokerage not in the original list (e.g., Robinhood), connect via OAuth, verify it appears in the connections list and dashboard
+
+**Rationale**: Extends User Story 2 to support dynamic brokerage discovery and connection
+
+### Backend Implementation for Add New Connections
+
+- [X] T109 [P] [US2] Create Brokerage type in backend/src/types/index.ts with id, name, slug, isConnected fields
+- [X] T110 [US2] Create GET /api/brokerages endpoint in backend/src/api/brokerages.ts that calls listBrokerages() and marks connected ones
+- [X] T111 [US2] Register brokerages router in backend/src/api/index.ts
+- [X] T112 [US2] Update POST /connections/:id/portal-url endpoint to accept broker query param in backend/src/api/connections.ts
+
+### Frontend Implementation for Add New Connections
+
+- [X] T113 [P] [US2] Create Brokerage type in frontend/src/types/index.ts
+- [X] T114 [P] [US2] Add getBrokerages() function to frontend/src/services/api.ts
+- [X] T115 [US2] Create useBrokerages hook with React Query in frontend/src/hooks/useBrokerages.ts
+- [X] T116 [US2] Create AddInstitutionModal component with search in frontend/src/components/connections/AddInstitutionModal.tsx
+- [X] T117 [US2] Update Connections page to add "Add Institution" button and wire up modal in frontend/src/pages/Connections.tsx
+- [X] T118 [US2] Update ConnectModal to accept broker slug and pass to portal URL in frontend/src/components/connections/ConnectModal.tsx
+- [X] T119 [US2] Update getPortalUrl API call to include broker param in frontend/src/services/api.ts
+
+### Testing for Add New Connections
+
+- [ ] T120 [P] [US2] Unit test for AddInstitutionModal component in frontend/tests/unit/AddInstitutionModal.test.tsx
+- [ ] T121 [P] [US2] Integration test for GET /api/brokerages endpoint in backend/tests/integration/brokerages.test.ts
+
+**Checkpoint**: Users can now connect to any of 24+ SnapTrade brokerages, not just the 3 hardcoded ones
+
+---
+
 ## Phase 6: User Story 4 - Filter Dashboard by Institution (Priority: P2 - Post-MVP)
 
 **Goal**: Filter dashboard to show only accounts from selected institutions
@@ -277,6 +311,7 @@
 - **Phase 4 (US2 Connections)**: Depends on Phase 2 + Phase 3
 - **Phase 5 (US1 Dashboard)**: Depends on Phase 2 + Phase 3 + Phase 4 (needs connected institutions)
 - **Phase 5.1 (Fixed SnapTrade User)**: Depends on Phase 5 - MVP enhancement
+- **Phase 5.2 (Add New Connections)**: Depends on Phase 5.1 - Extends US2 with dynamic brokerage support
 - **Phase 6 (US4 Filtering)**: Depends on Phase 5 - Post-MVP
 - **Phase 7 (Polish)**: Depends on Phase 5
 
@@ -296,6 +331,9 @@ Phase 5 (US1: Dashboard) ──────┘
         │
         ▼
 Phase 5.1 (Fixed SnapTrade User) [MVP Enhancement]
+        │
+        ▼
+Phase 5.2 (Add New Connections) [MVP Enhancement]
         │
         ▼
 Phase 6 (US4: Filtering) [Post-MVP]
@@ -360,11 +398,25 @@ T069, T070, T071
 T079 → T084 → T085 → T080 → T081 → T082 → T083 → T086 → T087
 ```
 
+**Phase 5.2 (Add New Connections)**:
+```bash
+# Types in parallel:
+T109, T113
+# Backend endpoint then register:
+T110 → T111
+# Frontend API and hook:
+T114 → T115
+# Components and page updates (after types and API):
+T116, T117, T118, T119
+# Tests in parallel:
+T120, T121
+```
+
 ---
 
 ## Implementation Strategy
 
-### MVP First (User Stories 1, 2, 3 + Fixed User)
+### MVP First (User Stories 1, 2, 3 + Enhancements)
 
 1. Complete Phase 1: Setup
 2. Complete Phase 2: Foundational (CRITICAL)
@@ -372,13 +424,15 @@ T079 → T084 → T085 → T080 → T081 → T082 → T083 → T086 → T087
 4. Complete Phase 4: Connections (US2)
 5. Complete Phase 5: Dashboard (US1)
 6. Complete Phase 5.1: Fixed SnapTrade User (MVP Enhancement)
-7. **STOP and VALIDATE**: Test full MVP flow
-8. Deploy/demo MVP
+7. Complete Phase 5.2: Add New Connections (MVP Enhancement)
+8. **STOP and VALIDATE**: Test full MVP flow
+9. Deploy/demo MVP
 
 ### MVP Scope
 
 - Navigation layout with Dashboard/Connections views
 - Connect/disconnect institutions via SnapTrade (using fixed user)
+- **Add new institution connections** from 24+ SnapTrade brokerages
 - View consolidated dashboard with grouping and totals
 - As-of date filtering
 - Export report (CSV)
@@ -400,14 +454,15 @@ T079 → T084 → T085 → T080 → T081 → T082 → T083 → T086 → T087
 | 4 | US2 Connections | 17 | P1 (MVP) |
 | 5 | US1 Dashboard | 20 | P1 (MVP) |
 | 5.1 | Fixed SnapTrade User | 9 | P1 (MVP Enhancement) |
+| 5.2 | Add New Connections | 13 | P1 (MVP Enhancement) |
 | 6 | US4 Filtering | 6 | P2 (Post-MVP) |
 | 7 | Polish | 15 | - |
-| **Total** | | **108** | |
+| **Total** | | **121** | |
 
 ### Tasks by User Story
 
 - **US1 (Dashboard)**: 20 tasks
-- **US2 (Connections)**: 17 tasks
+- **US2 (Connections)**: 17 tasks + 13 tasks (Add New Connections) = 30 tasks
 - **US3 (Navigation)**: 9 tasks
 - **US4 (Filtering)**: 6 tasks (Post-MVP)
 - **Infrastructure**: 32 tasks (Setup + Foundational)
@@ -421,3 +476,4 @@ T079 → T084 → T085 → T080 → T081 → T082 → T083 → T086 → T087
 - **Per Story**: Tests parallelizable, components often parallelizable
 - **Cross-Story**: US3 → US2 → US1 must be sequential (dependencies)
 - **Fixed User**: Must be sequential (schema → model → service changes)
+- **Add New Connections**: Types parallel, then backend/frontend can proceed in parallel

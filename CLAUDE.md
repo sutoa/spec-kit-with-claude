@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-01-12
 
 ## Active Technologies
+- TypeScript 5.x with Node.js 20 LTS + React 18, Express.js, SnapTrade SDK, TanStack Query (001-financial-account-dashboard)
+- SQLite (existing) - no schema changes needed (001-financial-account-dashboard)
 
 - TypeScript 5.x with Node.js 20 LTS (001-financial-account-dashboard)
 
@@ -22,6 +24,7 @@ npm test && npm run lint
 TypeScript 5.x with Node.js 20 LTS: Follow standard conventions
 
 ## Recent Changes
+- 001-financial-account-dashboard: Added TypeScript 5.x with Node.js 20 LTS + React 18, Express.js, SnapTrade SDK, TanStack Query
 
 - 001-financial-account-dashboard: Added TypeScript 5.x with Node.js 20 LTS
 

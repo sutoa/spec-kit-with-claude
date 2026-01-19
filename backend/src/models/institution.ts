@@ -28,6 +28,42 @@ export class InstitutionModel {
     return row ? rowToInstitution(row) : null
   }
 
+  static create(data: {
+    id: string
+    name: string
+    logoUrl?: string | null
+    apiType?: 'api' | 'manual'
+    apiBaseUrl?: string | null
+    authType?: 'api_key' | 'oauth' | 'credentials' | 'none'
+  }): Institution {
+    const db = getDatabase()
+    db.prepare(`
+      INSERT INTO institutions (id, name, logo_url, api_type, api_base_url, auth_type)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+      data.id,
+      data.name,
+      data.logoUrl ?? null,
+      data.apiType ?? 'api',
+      data.apiBaseUrl ?? null,
+      data.authType ?? 'oauth'
+    )
+    return this.findById(data.id)!
+  }
+
+  static findOrCreate(data: {
+    id: string
+    name: string
+    logoUrl?: string | null
+    apiType?: 'api' | 'manual'
+    apiBaseUrl?: string | null
+    authType?: 'api_key' | 'oauth' | 'credentials' | 'none'
+  }): Institution {
+    const existing = this.findById(data.id)
+    if (existing) return existing
+    return this.create(data)
+  }
+
   static findAllWithConnections(): InstitutionWithConnection[] {
     const institutions = this.findAll()
 

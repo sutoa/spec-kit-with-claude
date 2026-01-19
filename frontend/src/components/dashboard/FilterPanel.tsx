@@ -1,9 +1,19 @@
+import { InstitutionFilter } from './InstitutionFilter'
+
+interface Institution {
+  id: string
+  name: string
+}
+
 interface FilterPanelProps {
   asOfDate: string
   onAsOfDateChange: (date: string) => void
   onRefresh: () => void
   onExport: () => void
   isRefreshing: boolean
+  institutions?: Institution[]
+  selectedInstitutionIds?: string[]
+  onInstitutionFilterChange?: (ids: string[]) => void
 }
 
 export function FilterPanel({
@@ -12,45 +22,65 @@ export function FilterPanel({
   onRefresh,
   onExport,
   isRefreshing,
+  institutions = [],
+  selectedInstitutionIds = [],
+  onInstitutionFilterChange,
 }: FilterPanelProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <label htmlFor="asOfDate" className="text-sm font-medium text-gray-700">
-            As of Date:
+    <div className="bg-panel-dark rounded-xl border border-border-dark p-4">
+      <div className="flex items-start gap-6 flex-wrap">
+        {/* Date Filter */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="asOfDate" className="text-sm font-medium text-text-secondary-dark">
+            As of Date
           </label>
-          <input
-            type="date"
-            id="asOfDate"
-            value={asOfDate}
-            onChange={(e) => onAsOfDateChange(e.target.value)}
-            className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              id="asOfDate"
+              value={asOfDate}
+              onChange={(e) => onAsOfDateChange(e.target.value)}
+              className="px-3 py-2 bg-input-bg-dark border border-input-border-dark rounded-lg text-text-primary-dark text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+            {asOfDate && (
+              <button
+                onClick={() => onAsOfDateChange('')}
+                className="text-sm text-primary hover:text-primary/80 font-medium"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
-        <button
-          onClick={() => onAsOfDateChange('')}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-        >
-          Clear Date
-        </button>
+        {/* Institution Filter */}
+        {institutions.length > 0 && onInstitutionFilterChange && (
+          <div className="border-l border-border-dark pl-6">
+            <InstitutionFilter
+              institutions={institutions}
+              selectedIds={selectedInstitutionIds}
+              onChange={onInstitutionFilterChange}
+              showAllOption
+            />
+          </div>
+        )}
 
-        <div className="ml-auto flex items-center gap-2">
+        {/* Actions */}
+        <div className="ml-auto flex items-center gap-3">
           <button
             onClick={onExport}
-            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-input-bg-dark hover:bg-input-bg-dark/80 border border-border-dark rounded-lg text-text-primary-dark text-sm font-medium transition-colors"
           >
-            <span className="material-symbols-outlined text-[20px]">download</span>
+            <span className="material-symbols-outlined text-lg">download</span>
             Export CSV
           </button>
 
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-2 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 rounded-lg text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span className={`material-symbols-outlined text-[20px] ${isRefreshing ? 'animate-spin' : ''}`}>
+            <span className={`material-symbols-outlined text-lg ${isRefreshing ? 'animate-spin' : ''}`}>
               refresh
             </span>
             {isRefreshing ? 'Refreshing...' : 'Refresh'}

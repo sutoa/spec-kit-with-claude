@@ -232,3 +232,111 @@ If SnapTrade costs are prohibitive or connectivity issues arise:
 1. Create data model based on spec entities
 2. Define API contracts (OpenAPI spec)
 3. Set up project scaffolding with chosen technologies
+
+---
+
+## Research Addendum: Add New Institution Connections
+
+**Date**: 2026-01-18
+**Scope**: Enable users to add new financial institution connections beyond the 3 pre-configured ones
+
+### Executive Summary
+
+The current implementation supports only 3 hardcoded institutions (Alpaca, Vanguard, TD Trade). Users want to connect to any institution supported by SnapTrade. Research confirms SnapTrade provides 24+ brokerages via their API, and the existing OAuth infrastructure can be extended to support dynamic brokerage selection.
+
+### 1. SnapTrade Brokerage Availability
+
+**Decision**: Use SnapTrade's `listAllBrokerages()` API to dynamically fetch available brokerages
+
+**Findings**:
+- SnapTrade currently supports **24 brokerages** including major US and international institutions
+- Available brokerages include: Interactive Brokers, Robinhood, E-Trade, Webull, Coinbase, TD Direct Investing, Questrade, Wealthsimple Trade, DEGIRO, tastytrade, Alpaca Paper, and more
+- The `listBrokerages()` function is already implemented in `backend/src/services/snaptrade/client.ts`
+- Each brokerage has: `id`, `name`, `slug` properties
+
+**Alternatives Considered**:
+- Hardcode a larger list: Rejected - requires maintenance and misses new brokerages
+- Scrape brokerage lists: Rejected - API already provides this data
+
+### 2. User Interface for Brokerage Selection
+
+**Decision**: Add "Add Institution" button that opens a brokerage picker modal with search
+
+**Rationale**:
+- 24+ brokerages is too many to show all at once in the main UI
+- Search functionality allows quick filtering
+- Modal pattern is consistent with existing ConnectModal
+- Shows only unconnected brokerages to avoid confusion
+
+**Alternatives Considered**:
+- Show all brokerages in main list: Rejected - clutters UI
+- Separate "Browse Brokerages" page: Rejected - adds navigation complexity
+
+### 3. OAuth Flow with Specific Brokerage
+
+**Decision**: Pass the brokerage `slug` to the `getConnectionPortalUrl()` function
+
+**Findings**:
+- The existing `getConnectionPortalUrl()` in `client.ts` already accepts an optional `broker` parameter
+- SnapTrade's `loginSnapTradeUser()` API accepts a `broker` parameter that pre-selects the brokerage
+- This bypasses the brokerage selection step in the SnapTrade portal, improving UX
+
+**Implementation**:
+```typescript
+// Existing function signature (already supports broker param)
+export async function getConnectionPortalUrl(
+  userId: string,
+  userSecret: string,
+  broker?: string  // Pass brokerage slug here
+): Promise<string>
+```
+
+### 4. Data Storage Strategy
+
+**Decision**: No database changes - use virtual institution records for SnapTrade brokerages
+
+**Rationale**:
+- Local institutions table was designed for hardcoded institutions with custom API integrations
+- SnapTrade-connected brokerages don't need local storage - all data comes from SnapTrade API
+- Connection status is already derived from SnapTrade's `listUserConnections()` API
+- Simplifies architecture - no database migrations needed
+
+### 5. API Design
+
+**New Backend Endpoint**: `GET /api/brokerages`
+
+Returns list of available SnapTrade brokerages:
+```json
+{
+  "data": [
+    { "id": "ROBINHOOD", "name": "Robinhood", "slug": "ROBINHOOD", "isConnected": false },
+    { "id": "ALPACA-PAPER", "name": "Alpaca Paper", "slug": "ALPACA-PAPER", "isConnected": true }
+  ]
+}
+```
+
+### Technical Recommendations
+
+#### Backend Changes
+1. New endpoint `GET /api/brokerages` - lists available SnapTrade brokerages with connection status
+2. Update connection creation to accept brokerage slug
+
+#### Frontend Changes
+1. New `AddInstitutionModal` component - brokerage picker with search
+2. "Add Institution" button on Connections page
+3. Update `ConnectModal` to pass broker slug to OAuth flow
+
+### Scope Definition
+
+**In Scope (MVP)**:
+- Backend endpoint to list available brokerages
+- Frontend "Add Institution" button and modal
+- Search/filter brokerages
+- Initiate OAuth for selected brokerage
+- Show newly connected institution in list
+
+**Out of Scope (Future)**:
+- Brokerage list caching
+- Brokerage logos/icons from SnapTrade
+- Brokerage categories/grouping
+- Favorite/recent brokerages

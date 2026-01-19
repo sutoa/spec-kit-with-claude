@@ -110,6 +110,14 @@ export interface AccountBalance {
   asOfDate: string
 }
 
+// Brokerage Types (from SnapTrade)
+export interface Brokerage {
+  id: string
+  name: string
+  slug: string
+  isConnected: boolean
+}
+
 // API Request Types
 export interface CreateConnectionRequest {
   institutionId: string
