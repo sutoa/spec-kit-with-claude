@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Unlink, AlertTriangle, Loader2 } from 'lucide-react'
+import { cn } from '../../lib/utils'
 
 interface DisconnectConfirmModalProps {
   connection: { id: number; institutionName: string } | null
@@ -45,48 +47,58 @@ export function DisconnectConfirmModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-obsidian-950/80 backdrop-blur-sm"
         onClick={handleClose}
       />
 
       {/* Modal */}
-      <div className="relative bg-panel-dark border border-border-dark rounded-xl shadow-2xl max-w-md w-full p-6">
+      <div
+        className={cn(
+          'relative max-w-md w-full p-6',
+          'bg-obsidian-900 border border-obsidian-700/50 rounded-2xl',
+          'shadow-glass animate-scale-in'
+        )}
+      >
+        {/* Accent line - red for danger */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-error/50 to-transparent rounded-t-2xl" />
+
         {/* Header with Icon */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
-            <span className="material-symbols-outlined text-red-500 text-4xl">
-              link_off
-            </span>
+          <div
+            className={cn(
+              'w-16 h-16 rounded-2xl flex items-center justify-center mb-4',
+              'bg-error/10 border border-error/20'
+            )}
+          >
+            <Unlink className="w-8 h-8 text-error" />
           </div>
-          <h2 className="text-text-primary-dark text-2xl font-semibold mb-2">
+          <h2 className="text-foreground text-xl font-semibold mb-2">
             Disconnect {connection.institutionName}?
           </h2>
-          <p className="text-text-secondary-dark text-sm">
-            This will remove your connection and delete all associated accounts and balance
-            history. This action cannot be undone.
+          <p className="text-muted-foreground text-sm">
+            This will remove your connection and delete all associated accounts and balance history.
+            This action cannot be undone.
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <p className="text-red-400 text-sm">{error}</p>
+          <div className={cn('mb-4 p-3 rounded-lg', 'bg-error/10 border border-error/20')}>
+            <p className="text-error text-sm">{error}</p>
           </div>
         )}
 
         {/* Warning */}
-        <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+        <div className={cn('mb-6 p-4 rounded-xl', 'bg-warning/10 border border-warning/20')}>
           <div className="flex items-start gap-3">
-            <span className="material-symbols-outlined text-yellow-500 text-xl flex-shrink-0">
-              warning
-            </span>
+            <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
             <div>
-              <p className="text-text-primary-dark text-sm font-medium mb-1">
+              <p className="text-foreground text-sm font-medium mb-1">
                 Warning: Data will be permanently deleted
               </p>
-              <p className="text-text-secondary-dark text-xs">
-                All accounts and transaction history from this institution will be removed from
-                your dashboard.
+              <p className="text-muted-foreground text-xs">
+                All accounts and transaction history from this institution will be removed from your
+                dashboard.
               </p>
             </div>
           </div>
@@ -98,7 +110,12 @@ export function DisconnectConfirmModal({
             type="button"
             onClick={handleClose}
             disabled={isSubmitting}
-            className="flex-1 px-4 py-3 bg-input-bg-dark hover:bg-input-bg-dark/80 text-text-primary-dark rounded-lg transition-colors font-medium disabled:opacity-50"
+            className={cn(
+              'flex-1 px-4 py-3 rounded-lg font-medium',
+              'bg-obsidian-800/50 text-foreground',
+              'hover:bg-obsidian-700/50 transition-colors',
+              'disabled:opacity-50'
+            )}
           >
             Cancel
           </button>
@@ -106,13 +123,16 @@ export function DisconnectConfirmModal({
             type="button"
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+            className={cn(
+              'flex-1 px-4 py-3 rounded-lg font-medium',
+              'bg-error text-white',
+              'hover:bg-error-600 transition-colors',
+              'disabled:opacity-50 flex items-center justify-center gap-2'
+            )}
           >
             {isSubmitting ? (
               <>
-                <span className="material-symbols-outlined animate-spin text-xl">
-                  progress_activity
-                </span>
+                <Loader2 className="w-5 h-5 animate-spin" />
                 <span>Disconnecting...</span>
               </>
             ) : (

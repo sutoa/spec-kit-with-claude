@@ -1,4 +1,16 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
+import {
+  Calendar,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  Download,
+  RefreshCw,
+  X,
+} from 'lucide-react'
+import { cn } from '../../lib/utils'
 
 interface Institution {
   id: string
@@ -27,20 +39,57 @@ export function FilterPanel({
   onInstitutionFilterChange,
 }: FilterPanelProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Calculate dropdown position
+  const updateDropdownPosition = useCallback(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 8,
+        left: rect.left,
+        zIndex: 9999,
+      })
+    }
+  }, [])
+
+  // Update position when dropdown opens and on scroll/resize
+  useEffect(() => {
+    if (isDropdownOpen) {
+      updateDropdownPosition()
+      window.addEventListener('scroll', updateDropdownPosition, true)
+      window.addEventListener('resize', updateDropdownPosition)
+      return () => {
+        window.removeEventListener('scroll', updateDropdownPosition, true)
+        window.removeEventListener('resize', updateDropdownPosition)
+      }
+    }
+  }, [isDropdownOpen, updateDropdownPosition])
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(target)
+      ) {
         setIsDropdownOpen(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
 
-  const allSelected = institutions.length > 0 && selectedInstitutionIds.length === institutions.length
+  const allSelected =
+    institutions.length > 0 && selectedInstitutionIds.length === institutions.length
   const noneSelected = selectedInstitutionIds.length === 0
   const someSelected = !noneSelected && !allSelected
 
@@ -72,123 +121,159 @@ export function FilterPanel({
     return `${selectedInstitutionIds.length} Institutions`
   }
 
+  // Dropdown content to be rendered in portal
+  const dropdownContent = isDropdownOpen ? (
+    <div
+      ref={dropdownRef}
+      style={dropdownStyle}
+      className={cn(
+        'w-64',
+        'bg-obsidian-900 backdrop-blur-xl',
+        'rounded-xl border border-obsidian-600',
+        'shadow-2xl shadow-black/50',
+        'animate-fade-in'
+      )}
+    >
+      {/* Quick Actions */}
+      <div className="px-4 py-3 border-b border-obsidian-700 flex items-center justify-between">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          Filter Institutions
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSelectAll}
+            className="text-xs text-accent hover:text-accent-400 font-medium transition-colors"
+          >
+            All
+          </button>
+          <span className="text-obsidian-600">|</span>
+          <button
+            onClick={handleClearAll}
+            className="text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
+          >
+            None
+          </button>
+        </div>
+      </div>
+
+      {/* Institution List */}
+      <div className="max-h-64 overflow-y-auto scrollbar-thin py-2">
+        {institutions.map((institution) => {
+          const isSelected = selectedInstitutionIds.includes(institution.id)
+          return (
+            <button
+              key={institution.id}
+              onClick={() => handleToggle(institution.id)}
+              className={cn(
+                'w-full flex items-center gap-3 px-4 py-2.5',
+                'hover:bg-obsidian-700/50 transition-colors text-left'
+              )}
+            >
+              <div
+                className={cn(
+                  'w-4 h-4 rounded border flex items-center justify-center',
+                  'transition-all duration-200',
+                  isSelected
+                    ? 'bg-accent border-accent text-obsidian-950'
+                    : 'border-obsidian-500 bg-transparent'
+                )}
+              >
+                {isSelected && <Check className="w-3 h-3" />}
+              </div>
+              <span className="text-sm text-foreground">{institution.name}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Footer with count */}
+      {someSelected && (
+        <div className="px-4 py-2.5 border-t border-obsidian-700 bg-obsidian-800/50 rounded-b-xl">
+          <p className="text-xs text-muted-foreground">
+            Showing {selectedInstitutionIds.length} of {institutions.length}
+          </p>
+        </div>
+      )}
+    </div>
+  ) : null
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-5 py-4">
+    <div
+      className={cn(
+        'relative rounded-xl px-5 py-4',
+        'bg-obsidian-900/60 backdrop-blur-xl',
+        'border border-obsidian-700/50'
+      )}
+    >
+      {/* Subtle accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-obsidian-600/50 to-transparent" />
+
       <div className="flex items-center justify-between gap-4 flex-wrap">
         {/* Left side: Filters */}
         <div className="flex items-center gap-4">
           {/* Date Filter */}
-          <div className="flex items-center gap-2">
-            <label htmlFor="asOfDate" className="text-sm text-gray-500 whitespace-nowrap">
-              As of
-            </label>
-            <input
-              type="date"
-              id="asOfDate"
-              value={asOfDate}
-              onChange={(e) => onAsOfDateChange(e.target.value)}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hover:bg-gray-100 transition-colors cursor-pointer"
-            />
-            {asOfDate && (
-              <button
-                onClick={() => onAsOfDateChange('')}
-                className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                title="Clear date filter"
-              >
-                <span className="material-symbols-outlined text-base">close</span>
-              </button>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <label htmlFor="asOfDate" className="text-sm text-muted-foreground whitespace-nowrap">
+                As of
+              </label>
+            </div>
+            <div className="relative">
+              <input
+                type="date"
+                id="asOfDate"
+                value={asOfDate}
+                onChange={(e) => onAsOfDateChange(e.target.value)}
+                className={cn(
+                  'px-3 py-2 rounded-lg text-sm font-medium',
+                  'bg-obsidian-800/50 border border-obsidian-700/50',
+                  'text-foreground placeholder-muted-foreground',
+                  'focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent',
+                  'hover:bg-obsidian-700/50 transition-all duration-200',
+                  'cursor-pointer'
+                )}
+              />
+              {asOfDate && (
+                <button
+                  onClick={() => onAsOfDateChange('')}
+                  className={cn(
+                    'absolute right-2 top-1/2 -translate-y-1/2',
+                    'p-1 rounded-md text-muted-foreground',
+                    'hover:text-foreground hover:bg-obsidian-700/50',
+                    'transition-colors'
+                  )}
+                  title="Clear date filter"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Institution Filter Dropdown */}
           {institutions.length > 1 && onInstitutionFilterChange && (
             <>
-              <div className="h-5 w-px bg-gray-200" />
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className={`
-                    flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors
-                    ${someSelected
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
-                      : 'bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100'
-                    }
-                  `}
-                >
-                  <span className="material-symbols-outlined text-base">
-                    {someSelected ? 'filter_alt' : 'filter_list'}
-                  </span>
-                  <span>{getFilterLabel()}</span>
-                  <span className="material-symbols-outlined text-base">
-                    {isDropdownOpen ? 'expand_less' : 'expand_more'}
-                  </span>
-                </button>
-
-                {/* Dropdown Menu */}
-                {isDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                    {/* Quick Actions */}
-                    <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                        Filter Institutions
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={handleSelectAll}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          All
-                        </button>
-                        <span className="text-gray-300">|</span>
-                        <button
-                          onClick={handleClearAll}
-                          className="text-xs text-gray-500 hover:text-gray-700 font-medium"
-                        >
-                          None
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Institution List */}
-                    <div className="max-h-64 overflow-y-auto py-1">
-                      {institutions.map((institution) => {
-                        const isSelected = selectedInstitutionIds.includes(institution.id)
-                        return (
-                          <button
-                            key={institution.id}
-                            onClick={() => handleToggle(institution.id)}
-                            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 transition-colors text-left"
-                          >
-                            <span
-                              className={`
-                                w-4 h-4 rounded border flex items-center justify-center text-white transition-colors
-                                ${isSelected
-                                  ? 'bg-blue-600 border-blue-600'
-                                  : 'border-gray-300 bg-white'
-                                }
-                              `}
-                            >
-                              {isSelected && (
-                                <span className="material-symbols-outlined text-xs">check</span>
-                              )}
-                            </span>
-                            <span className="text-sm text-gray-700">{institution.name}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-
-                    {/* Footer with count */}
-                    {someSelected && (
-                      <div className="px-3 py-2 border-t border-gray-100 bg-gray-50">
-                        <p className="text-xs text-gray-500">
-                          Showing {selectedInstitutionIds.length} of {institutions.length}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+              <div className="h-6 w-px bg-obsidian-700/50" />
+              <button
+                ref={buttonRef}
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={cn(
+                  'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium',
+                  'transition-all duration-200',
+                  someSelected
+                    ? 'bg-accent/10 text-accent border border-accent/30 hover:bg-accent/15'
+                    : 'bg-obsidian-800/50 text-foreground border border-obsidian-700/50 hover:bg-obsidian-700/50'
                 )}
-              </div>
+              >
+                <Filter className="w-4 h-4" />
+                <span>{getFilterLabel()}</span>
+                {isDropdownOpen ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
             </>
           )}
         </div>
@@ -197,25 +282,36 @@ export function FilterPanel({
         <div className="flex items-center gap-2">
           <button
             onClick={onExport}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md text-sm font-medium transition-colors"
+            className={cn(
+              'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium',
+              'text-muted-foreground hover:text-foreground',
+              'hover:bg-obsidian-700/50 transition-all duration-200'
+            )}
             title="Export to CSV"
           >
-            <span className="material-symbols-outlined text-lg">download</span>
+            <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
           </button>
 
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-md text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className={cn(
+              'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
+              'bg-accent text-obsidian-950',
+              'hover:bg-accent-400 transition-all duration-200',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+              'shadow-glow-sm hover:shadow-glow'
+            )}
           >
-            <span className={`material-symbols-outlined text-lg ${isRefreshing ? 'animate-spin' : ''}`}>
-              refresh
-            </span>
+            <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
             <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
         </div>
       </div>
+
+      {/* Render dropdown in portal to escape all overflow containers */}
+      {createPortal(dropdownContent, document.body)}
     </div>
   )
 }

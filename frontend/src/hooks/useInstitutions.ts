@@ -44,7 +44,7 @@ export function useCreateConnection() {
     }) => {
       return api.createConnection({ institutionId, credentials })
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate and refetch institutions to update connection status
       queryClient.invalidateQueries({ queryKey: ['institutions'] })
       queryClient.invalidateQueries({ queryKey: ['institutions', variables.institutionId] })

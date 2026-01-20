@@ -2,30 +2,250 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Material Symbols configuration */
-.material-symbols-outlined {
-  font-variation-settings:
-    'FILL' 0,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24;
+@layer base {
+  :root {
+    --background: 5 6% 2%;
+    --foreground: 0 0% 98%;
+    --card: 240 6% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 6% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 187 93% 43%;
+    --primary-foreground: 0 0% 2%;
+    --secondary: 240 5% 17%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5% 10%;
+    --muted-foreground: 240 4% 65%;
+    --accent: 187 93% 43%;
+    --accent-foreground: 0 0% 2%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5% 17%;
+    --input: 240 5% 17%;
+    --ring: 187 93% 43%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
 }
 
-/* Custom scrollbar for dark mode */
+@layer components {
+  /* Glass morphism card */
+  .glass-card {
+    @apply bg-obsidian-850/80 backdrop-blur-xl border border-obsidian-600/50;
+    @apply shadow-glass;
+  }
+
+  /* Glowing border effect */
+  .glow-border {
+    @apply relative;
+    &::before {
+      content: '';
+      @apply absolute -inset-px rounded-lg;
+      background: linear-gradient(
+        135deg,
+        rgba(6, 182, 212, 0.3) 0%,
+        transparent 50%,
+        rgba(6, 182, 212, 0.1) 100%
+      );
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    &:hover::before {
+      opacity: 1;
+    }
+  }
+
+  /* Accent glow effect for buttons */
+  .btn-glow {
+    @apply relative overflow-hidden;
+    &::after {
+      content: '';
+      @apply absolute inset-0;
+      background: linear-gradient(
+        135deg,
+        rgba(6, 182, 212, 0.2) 0%,
+        transparent 50%
+      );
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    &:hover::after {
+      opacity: 1;
+    }
+  }
+
+  /* Stat card with animated border */
+  .stat-card {
+    @apply relative overflow-hidden rounded-xl p-6;
+    @apply bg-gradient-to-br from-obsidian-850 to-obsidian-900;
+    @apply border border-obsidian-600/30;
+    &::before {
+      content: '';
+      @apply absolute top-0 left-0 right-0 h-px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(6, 182, 212, 0.5),
+        transparent
+      );
+    }
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    @apply relative overflow-hidden;
+    &::after {
+      content: '';
+      @apply absolute inset-0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.05),
+        transparent
+      );
+      animation: shimmer 2s infinite;
+    }
+  }
+
+  /* Noise texture overlay */
+  .noise-overlay {
+    @apply pointer-events-none fixed inset-0 z-50;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.02;
+  }
+
+  /* Grid background pattern */
+  .grid-bg {
+    @apply bg-grid-pattern bg-grid;
+  }
+
+  /* Financial data styling */
+  .financial-value {
+    @apply font-mono tabular-nums tracking-tight;
+  }
+
+  .financial-positive {
+    @apply text-success-400;
+  }
+
+  .financial-negative {
+    @apply text-error-400;
+  }
+
+  /* Input focus ring */
+  .input-focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent;
+    @apply transition-all duration-200;
+  }
+
+  /* Sidebar navigation item */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg;
+    @apply transition-all duration-200 ease-out-expo;
+    @apply text-muted-foreground hover:text-foreground;
+    @apply hover:bg-obsidian-700/50;
+    &.active {
+      @apply bg-accent/10 text-accent;
+      @apply border-l-2 border-accent -ml-[2px];
+    }
+  }
+
+  /* Dropdown animations */
+  .dropdown-content {
+    @apply animate-scale-in origin-top-left;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 ease-out-expo;
+    @apply hover:translate-y-[-2px] hover:shadow-glow;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  /* Custom thin scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.obsidian.600') transparent;
+  }
+
+  /* Animation delay utilities */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-accent-400 to-accent-200;
+  }
+}
+
+/* Custom scrollbar for webkit browsers */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #192633;
+  background: theme('colors.obsidian.900');
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #324d67;
+  background: theme('colors.obsidian.600');
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3d5a7a;
+  background: theme('colors.obsidian.500');
+}
+
+/* Selection color */
+::selection {
+  background: theme('colors.accent.500 / 30%');
+  color: theme('colors.foreground');
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-background;
+}
+
+/* Material Symbols configuration (keeping for backward compat) */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }

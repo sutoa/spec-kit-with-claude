@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
+import { Building2, SearchX } from 'lucide-react'
 import type { InstitutionWithConnection } from '../../types'
 import { InstitutionCard } from './InstitutionCard'
+import { cn } from '../../lib/utils'
 
 interface InstitutionListProps {
   institutions: InstitutionWithConnection[]
@@ -42,13 +44,16 @@ export function InstitutionList({
   if (institutions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <span className="material-symbols-outlined text-text-secondary-dark text-6xl mb-4">
-          account_balance
-        </span>
-        <h3 className="text-text-primary-dark text-xl font-semibold mb-2">
-          No institutions available
-        </h3>
-        <p className="text-text-secondary-dark">
+        <div
+          className={cn(
+            'flex items-center justify-center w-16 h-16 rounded-2xl mb-6',
+            'bg-obsidian-800/50 border border-obsidian-700/50'
+          )}
+        >
+          <Building2 className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-foreground text-xl font-semibold mb-2">No institutions available</h3>
+        <p className="text-muted-foreground">
           There are no financial institutions configured yet.
         </p>
       </div>
@@ -58,28 +63,36 @@ export function InstitutionList({
   if (filteredInstitutions.length === 0 && searchQuery.trim()) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <span className="material-symbols-outlined text-text-secondary-dark text-6xl mb-4">
-          search_off
-        </span>
-        <h3 className="text-text-primary-dark text-xl font-semibold mb-2">
+        <div
+          className={cn(
+            'flex items-center justify-center w-16 h-16 rounded-2xl mb-6',
+            'bg-obsidian-800/50 border border-obsidian-700/50'
+          )}
+        >
+          <SearchX className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-foreground text-xl font-semibold mb-2">
           No institutions found matching "{searchQuery}"
         </h3>
-        <p className="text-text-secondary-dark">
-          Try adjusting your search query.
-        </p>
+        <p className="text-muted-foreground">Try adjusting your search query.</p>
       </div>
     )
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {filteredInstitutions.map((institution) => (
-        <InstitutionCard
+      {filteredInstitutions.map((institution, index) => (
+        <div
           key={institution.id}
-          institution={institution}
-          onConnect={onConnect}
-          onDisconnect={onDisconnect}
-        />
+          className="animate-fade-in-up"
+          style={{ animationDelay: `${index * 50}ms` }}
+        >
+          <InstitutionCard
+            institution={institution}
+            onConnect={onConnect}
+            onDisconnect={onDisconnect}
+          />
+        </div>
       ))}
     </div>
   )

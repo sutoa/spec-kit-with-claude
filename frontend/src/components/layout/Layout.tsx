@@ -10,12 +10,21 @@ export function Layout() {
   }
 
   return (
-    <div className="flex h-screen bg-background-dark">
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Gradient mesh background */}
+      <div className="fixed inset-0 bg-gradient-mesh pointer-events-none" />
+
+      {/* Grid pattern overlay */}
+      <div className="fixed inset-0 grid-bg pointer-events-none opacity-50" />
+
+      {/* Noise texture */}
+      <div className="noise-overlay" />
+
       {/* Sidebar */}
       <Sidebar isCollapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="relative flex-1 flex flex-col overflow-hidden">
         <Outlet />
       </main>
     </div>

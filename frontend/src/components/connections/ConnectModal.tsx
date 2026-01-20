@@ -1,6 +1,21 @@
 import { useState, useEffect, useRef, FormEvent } from 'react'
+import {
+  X,
+  Link2,
+  CheckCircle2,
+  Loader2,
+  ShieldCheck,
+  Eye,
+  Unlink,
+} from 'lucide-react'
 import type { InstitutionWithConnection, CredentialData } from '../../types'
-import { createConnection, getPortalUrl, getConnectionStatus, syncConnection } from '../../services/api'
+import {
+  createConnection,
+  getPortalUrl,
+  getConnectionStatus,
+  syncConnection,
+} from '../../services/api'
+import { cn } from '../../lib/utils'
 
 interface ConnectModalProps {
   institution: InstitutionWithConnection | null
@@ -12,7 +27,13 @@ interface ConnectModalProps {
 
 type OAuthStep = 'idle' | 'creating' | 'opening' | 'waiting' | 'syncing' | 'complete' | 'error'
 
-export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSlug }: ConnectModalProps) {
+export function ConnectModal({
+  institution,
+  isOpen,
+  onClose,
+  onSuccess,
+  brokerSlug,
+}: ConnectModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -137,7 +158,7 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
             clearInterval(pollIntervalRef.current)
             pollIntervalRef.current = null
           }
-          setError('Connection timed out. Click "I\'ve finished" if you completed the connection.')
+          setError("Connection timed out. Click \"I've finished\" if you completed the connection.")
           return
         }
 
@@ -256,19 +277,28 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-obsidian-950/80 backdrop-blur-sm"
         onClick={handleClose}
       />
 
       {/* Modal */}
-      <div className="relative bg-panel-dark border border-border-dark rounded-xl shadow-2xl max-w-md w-full p-6">
+      <div
+        className={cn(
+          'relative max-w-md w-full p-6',
+          'bg-obsidian-900 border border-obsidian-700/50 rounded-2xl',
+          'shadow-glass animate-scale-in'
+        )}
+      >
+        {/* Accent line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent rounded-t-2xl" />
+
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-text-primary-dark text-2xl font-semibold mb-1">
+            <h2 className="text-foreground text-xl font-semibold mb-1">
               Connect to {institution.name}
             </h2>
-            <p className="text-text-secondary-dark text-sm">
+            <p className="text-muted-foreground text-sm">
               {isOAuth
                 ? 'Connect securely via SnapTrade'
                 : `Enter your ${isApiKey ? 'API credentials' : 'account credentials'} to connect`}
@@ -277,12 +307,14 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
           <button
             onClick={handleClose}
             disabled={oauthStep === 'syncing'}
-            className="p-1 hover:bg-input-bg-dark rounded-lg transition-colors disabled:opacity-50"
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              'text-muted-foreground hover:text-foreground',
+              'hover:bg-obsidian-700/50 disabled:opacity-50'
+            )}
             aria-label="Close"
           >
-            <span className="material-symbols-outlined text-text-secondary-dark">
-              close
-            </span>
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -291,22 +323,27 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
           <div>
             {oauthStep === 'idle' || oauthStep === 'error' ? (
               <>
-                <div className="mb-6 p-4 bg-input-bg-dark rounded-lg">
-                  <p className="text-text-secondary-dark text-sm mb-3">
-                    You'll be redirected to SnapTrade to securely connect your {institution.name} account.
-                    Your credentials are never shared with us.
+                <div
+                  className={cn(
+                    'mb-6 p-4 rounded-xl',
+                    'bg-obsidian-800/50 border border-obsidian-700/50'
+                  )}
+                >
+                  <p className="text-muted-foreground text-sm mb-4">
+                    You'll be redirected to SnapTrade to securely connect your{' '}
+                    {institution.name} account. Your credentials are never shared with us.
                   </p>
-                  <ul className="text-text-secondary-dark text-xs space-y-1">
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-green-400 text-sm">check_circle</span>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <ShieldCheck className="w-4 h-4 text-success shrink-0" />
                       Bank-level security
                     </li>
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-green-400 text-sm">check_circle</span>
+                    <li className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Eye className="w-4 h-4 text-success shrink-0" />
                       Read-only access to your accounts
                     </li>
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-green-400 text-sm">check_circle</span>
+                    <li className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Unlink className="w-4 h-4 text-success shrink-0" />
                       Disconnect anytime
                     </li>
                   </ul>
@@ -314,8 +351,13 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
 
                 {/* Error Message */}
                 {error && (
-                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <p className="text-red-400 text-sm">{error}</p>
+                  <div
+                    className={cn(
+                      'mb-4 p-3 rounded-lg',
+                      'bg-error/10 border border-error/20'
+                    )}
+                  >
+                    <p className="text-error text-sm">{error}</p>
                   </div>
                 )}
 
@@ -324,16 +366,26 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="flex-1 px-4 py-3 bg-input-bg-dark hover:bg-input-bg-dark/80 text-text-primary-dark rounded-lg transition-colors font-medium"
+                    className={cn(
+                      'flex-1 px-4 py-3 rounded-lg font-medium',
+                      'bg-obsidian-800/50 text-foreground',
+                      'hover:bg-obsidian-700/50 transition-colors'
+                    )}
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleOAuthConnect}
-                    className="flex-1 px-4 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+                    className={cn(
+                      'flex-1 px-4 py-3 rounded-lg font-medium',
+                      'bg-accent text-obsidian-950',
+                      'hover:bg-accent-400 transition-colors',
+                      'flex items-center justify-center gap-2',
+                      'shadow-glow-sm hover:shadow-glow'
+                    )}
                   >
-                    <span className="material-symbols-outlined text-xl">link</span>
+                    <Link2 className="w-5 h-5" />
                     Connect via SnapTrade
                   </button>
                 </div>
@@ -341,13 +393,9 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
             ) : oauthStep === 'waiting' ? (
               // Waiting for user to complete OAuth
               <div className="text-center py-6">
-                <span className="material-symbols-outlined animate-spin text-primary text-6xl mb-4">
-                  progress_activity
-                </span>
-                <p className="text-text-primary-dark font-medium mb-2">
-                  {getOAuthStepMessage()}
-                </p>
-                <p className="text-text-secondary-dark text-sm mb-6">
+                <Loader2 className="w-12 h-12 text-accent animate-spin mx-auto mb-4" />
+                <p className="text-foreground font-medium mb-2">{getOAuthStepMessage()}</p>
+                <p className="text-muted-foreground text-sm mb-6">
                   Don't see the popup? Check if it was blocked by your browser.
                 </p>
 
@@ -355,7 +403,11 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                 <button
                   type="button"
                   onClick={handleManualComplete}
-                  className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                  className={cn(
+                    'px-6 py-3 rounded-lg font-medium',
+                    'bg-success text-obsidian-950',
+                    'hover:bg-success-400 transition-colors'
+                  )}
                 >
                   I've finished connecting
                 </button>
@@ -363,7 +415,7 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="block mx-auto mt-4 text-text-secondary-dark hover:text-text-primary-dark text-sm"
+                  className="block mx-auto mt-4 text-muted-foreground hover:text-foreground text-sm transition-colors"
                 >
                   Cancel
                 </button>
@@ -372,17 +424,11 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
               // OAuth in progress (creating, opening, syncing, complete)
               <div className="text-center py-8">
                 {oauthStep === 'complete' ? (
-                  <span className="material-symbols-outlined text-green-400 text-6xl mb-4">
-                    check_circle
-                  </span>
+                  <CheckCircle2 className="w-12 h-12 text-success mx-auto mb-4" />
                 ) : (
-                  <span className="material-symbols-outlined animate-spin text-primary text-6xl mb-4">
-                    progress_activity
-                  </span>
+                  <Loader2 className="w-12 h-12 text-accent animate-spin mx-auto mb-4" />
                 )}
-                <p className="text-text-primary-dark font-medium mb-2">
-                  {getOAuthStepMessage()}
-                </p>
+                <p className="text-foreground font-medium mb-2">{getOAuthStepMessage()}</p>
               </div>
             )}
           </div>
@@ -396,7 +442,7 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                   <div>
                     <label
                       htmlFor="apiKey"
-                      className="block text-text-primary-dark text-sm font-medium mb-2"
+                      className="block text-foreground text-sm font-medium mb-2"
                     >
                       API Key
                     </label>
@@ -406,7 +452,13 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
                       disabled={isSubmitting}
-                      className="w-full px-4 py-3 bg-input-bg-dark border border-input-border-dark rounded-lg text-text-primary-dark placeholder-text-secondary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50"
+                      className={cn(
+                        'w-full px-4 py-3 rounded-lg',
+                        'bg-obsidian-800/50 border border-obsidian-700/50',
+                        'text-foreground placeholder-muted-foreground',
+                        'focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent',
+                        'disabled:opacity-50 transition-all'
+                      )}
                       placeholder="Enter your API key"
                       required
                     />
@@ -416,7 +468,7 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                   <div>
                     <label
                       htmlFor="apiSecret"
-                      className="block text-text-primary-dark text-sm font-medium mb-2"
+                      className="block text-foreground text-sm font-medium mb-2"
                     >
                       API Secret
                     </label>
@@ -426,7 +478,13 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                       value={apiSecret}
                       onChange={(e) => setApiSecret(e.target.value)}
                       disabled={isSubmitting}
-                      className="w-full px-4 py-3 bg-input-bg-dark border border-input-border-dark rounded-lg text-text-primary-dark placeholder-text-secondary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50"
+                      className={cn(
+                        'w-full px-4 py-3 rounded-lg',
+                        'bg-obsidian-800/50 border border-obsidian-700/50',
+                        'text-foreground placeholder-muted-foreground',
+                        'focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent',
+                        'disabled:opacity-50 transition-all'
+                      )}
                       placeholder="Enter your API secret"
                       required
                     />
@@ -438,7 +496,7 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                   <div>
                     <label
                       htmlFor="username"
-                      className="block text-text-primary-dark text-sm font-medium mb-2"
+                      className="block text-foreground text-sm font-medium mb-2"
                     >
                       Username
                     </label>
@@ -448,7 +506,13 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       disabled={isSubmitting}
-                      className="w-full px-4 py-3 bg-input-bg-dark border border-input-border-dark rounded-lg text-text-primary-dark placeholder-text-secondary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50"
+                      className={cn(
+                        'w-full px-4 py-3 rounded-lg',
+                        'bg-obsidian-800/50 border border-obsidian-700/50',
+                        'text-foreground placeholder-muted-foreground',
+                        'focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent',
+                        'disabled:opacity-50 transition-all'
+                      )}
                       placeholder="Enter your username"
                       required
                     />
@@ -458,7 +522,7 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                   <div>
                     <label
                       htmlFor="password"
-                      className="block text-text-primary-dark text-sm font-medium mb-2"
+                      className="block text-foreground text-sm font-medium mb-2"
                     >
                       Password
                     </label>
@@ -468,7 +532,13 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isSubmitting}
-                      className="w-full px-4 py-3 bg-input-bg-dark border border-input-border-dark rounded-lg text-text-primary-dark placeholder-text-secondary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50"
+                      className={cn(
+                        'w-full px-4 py-3 rounded-lg',
+                        'bg-obsidian-800/50 border border-obsidian-700/50',
+                        'text-foreground placeholder-muted-foreground',
+                        'focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent',
+                        'disabled:opacity-50 transition-all'
+                      )}
                       placeholder="Enter your password"
                       required
                     />
@@ -479,14 +549,14 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-red-400 text-sm">{error}</p>
+              <div className={cn('mb-4 p-3 rounded-lg', 'bg-error/10 border border-error/20')}>
+                <p className="text-error text-sm">{error}</p>
               </div>
             )}
 
             {/* Info Message */}
-            <div className="mb-6 p-3 bg-primary/10 border border-primary/20 rounded-lg">
-              <p className="text-text-secondary-dark text-xs">
+            <div className={cn('mb-6 p-3 rounded-lg', 'bg-accent/10 border border-accent/20')}>
+              <p className="text-muted-foreground text-xs">
                 Your credentials will be encrypted and stored securely.
               </p>
             </div>
@@ -497,20 +567,29 @@ export function ConnectModal({ institution, isOpen, onClose, onSuccess, brokerSl
                 type="button"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-3 bg-input-bg-dark hover:bg-input-bg-dark/80 text-text-primary-dark rounded-lg transition-colors font-medium disabled:opacity-50"
+                className={cn(
+                  'flex-1 px-4 py-3 rounded-lg font-medium',
+                  'bg-obsidian-800/50 text-foreground',
+                  'hover:bg-obsidian-700/50 transition-colors',
+                  'disabled:opacity-50'
+                )}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                className={cn(
+                  'flex-1 px-4 py-3 rounded-lg font-medium',
+                  'bg-accent text-obsidian-950',
+                  'hover:bg-accent-400 transition-colors',
+                  'disabled:opacity-50 flex items-center justify-center gap-2',
+                  'shadow-glow-sm hover:shadow-glow'
+                )}
               >
                 {isSubmitting ? (
                   <>
-                    <span className="material-symbols-outlined animate-spin text-xl">
-                      progress_activity
-                    </span>
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Connecting...</span>
                   </>
                 ) : (
