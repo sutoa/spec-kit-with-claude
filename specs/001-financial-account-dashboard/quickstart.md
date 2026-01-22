@@ -215,6 +215,12 @@ cd backend && pnpm dev
 cd frontend && pnpm dev
 ```
 
+### Stopping the application
+
+Press **Ctrl+C** in the terminal to stop the servers.
+
+If running separately, stop each terminal with Ctrl+C.
+
 ### Production build
 
 ```bash
