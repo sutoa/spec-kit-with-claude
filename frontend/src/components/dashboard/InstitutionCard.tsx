@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Building2 } from 'lucide-react'
 import type { InstitutionSummary } from '../../hooks/useDashboard'
 import { AccountRow } from './AccountRow'
@@ -8,6 +9,7 @@ interface InstitutionCardProps {
 }
 
 export function InstitutionCard({ institution }: InstitutionCardProps) {
+  const [logoError, setLogoError] = useState(false)
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -38,7 +40,16 @@ export function InstitutionCard({ institution }: InstitutionCardProps) {
                 'bg-obsidian-800/50 border border-obsidian-700/50'
               )}
             >
-              <Building2 className="w-5 h-5 text-muted-foreground" />
+              {institution.logoUrl && !logoError ? (
+                <img
+                  src={institution.logoUrl}
+                  alt={`${institution.institutionName} logo`}
+                  className="w-6 h-6 object-contain"
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
+                <Building2 className="w-5 h-5 text-muted-foreground" />
+              )}
             </div>
             <h3 className="text-lg font-semibold text-foreground tracking-tight">
               {institution.institutionName}

@@ -87,9 +87,13 @@ export class DashboardService {
 
         // Initialize institution summary if not exists
         if (!institutionMap.has(instName)) {
+          const instId = instName.toLowerCase().replace(/\s+/g, '-')
+          // Look up logo URL from database
+          const dbInstitution = InstitutionModel.findById(instId)
           institutionMap.set(instName, {
-            institutionId: instName.toLowerCase().replace(/\s+/g, '-'),
+            institutionId: instId,
             institutionName: instName,
+            logoUrl: dbInstitution?.logoUrl || null,
             subTotal: 0,
             accounts: [],
           })

@@ -11,6 +11,7 @@ export interface DashboardReport {
 export interface InstitutionSummary {
   institutionId: string
   institutionName: string
+  logoUrl: string | null
   subTotal: number
   accounts: AccountBalance[]
 }
